@@ -1,2 +1,2 @@
 # go-template
-template repository of golang program
+go-template is shortcut for Database Autonomy Service, it provides self-perception, repair, optimization, and security database service.
