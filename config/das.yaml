@@ -1,5 +1,6 @@
 # configuration file path, if it's specified as relative path,
-# then directory of binary file will be the base directory of configuration file.
+# then directory of binary file will be the base directory of configuration file,
+# it is recommended to specify absolute path.
 config: das.yaml
 
 # specify whether das runs as daemon mode, if true, das will run as a daemon process.
@@ -10,7 +11,8 @@ daemon: false
 # log configuration
 log:
   # log file path, if it's specified as relative path,
-  # then directory of binary file will be the base directory of log file.
+  # then directory of binary file will be the base directory of log file,
+  # it is recommended to specify absolute path.
   # type: string
   # default: log/run.log
   file: log/run.log
@@ -47,7 +49,8 @@ server:
   # default: 6090
   port: 6090
   # pid file path, if it's specified as relative path,
-  # then directory of binary file will be the base directory of log file.
+  # then directory of binary file will be the base directory of log file,
+  # it is recommended to specify absolute path.
   # type: string
   # default: das.pid
   pid-file: das.pid
