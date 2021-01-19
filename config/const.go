@@ -21,22 +21,20 @@ import (
 
 // global constant
 const (
-	DefaultCommandName    = "go-template"
-	DefaultDaemon         = false
-	DefaultMode           = "agent"
-	DefaultConfigFileName = "go-template.yaml"
-	DefaultBaseDir        = constant.CurrentDir
-	DefaultConfigDir      = "./config"
-	DefaultLogDir         = "./log"
-	MinLogMaxSize         = 1
-	MaxLogMaxSize         = constant.MaxInt
-	MinLogMaxDays         = 1
-	MaxLogMaxDays         = constant.MaxInt
-	MinLogMaxBackups      = 1
-	MaxLogMaxBackups      = constant.MaxInt
-	DefaultServerPort     = 6090
-	DaemonArgTrue         = "--daemon=true"
-	DaemonArgFalse        = "--daemon=false"
+	DefaultCommandName = "go-template"
+	DefaultErrorHeader = "GO-TEMPLATE"
+	DefaultDaemon      = false
+	DefaultBaseDir     = constant.CurrentDir
+	DefaultLogDir      = "./log"
+	MinLogMaxSize      = 1
+	MaxLogMaxSize      = constant.MaxInt
+	MinLogMaxDays      = 1
+	MaxLogMaxDays      = constant.MaxInt
+	MinLogMaxBackups   = 1
+	MaxLogMaxBackups   = constant.MaxInt
+	DefaultServerPort  = 6090
+	DaemonArgTrue      = "--daemon=true"
+	DaemonArgFalse     = "--daemon=false"
 )
 
 // configuration constant
