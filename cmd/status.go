@@ -13,20 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package cmd
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/romberli/go-template/config"
+	"github.com/romberli/go-template/pkg/message"
 )
 
 // statusCmd represents the status command
@@ -43,42 +42,45 @@ var statusCmd = &cobra.Command{
 		// init config
 		err = initConfig()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrInitConfig].Error(), err.Error()))
+			fmt.Println(message.NewMessage(message.ErrInitConfig, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
 		// check if given pid is running
 		if serverPid != constant.DefaultRandomInt {
 			isRunning, err = linux.IsRunningWithPid(serverPid)
 			if err != nil {
-				fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrCheckServerRunningStatus].Error(), err.Error()))
-				return
+				fmt.Println(message.NewMessage(message.ErrCheckServerRunningStatus, err.Error()).Error())
+				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 			if isRunning {
-				fmt.Println(message.Messages[message.InfoServerIsRunning].Renew(serverPid).Error())
+				fmt.Println(message.NewMessage(message.InfoServerIsRunning, serverPid).Error())
 			} else {
-				fmt.Println(message.Messages[message.InfoServerNotRunning].Renew(serverPid).Error())
+				fmt.Println(message.NewMessage(message.InfoServerNotRunning, serverPid).Error())
 			}
 
-			return
+			os.Exit(constant.DefaultNormalExitCode)
 		}
 
 		// get pid
 		serverPidFile = viper.GetString(config.ServerPidFileKey)
 		serverPid, err = linux.GetPidFromPidFile(serverPidFile)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrGetPidFromPidFile].Renew(serverPidFile).Error(), err.Error()))
+			fmt.Println(message.NewMessage(message.ErrGetPidFromPidFile, serverPidFile, err.Error()).Error())
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 		isRunning, err = linux.IsRunningWithPid(serverPid)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrCheckServerRunningStatus].Error(), err.Error()))
-			return
+			fmt.Println(message.NewMessage(message.ErrCheckServerRunningStatus, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 		if isRunning {
-			fmt.Println(message.Messages[message.InfoServerIsRunning].Renew(serverPid).Error())
+			fmt.Println(message.NewMessage(message.InfoServerIsRunning, serverPid).Error())
 		} else {
-			fmt.Println(message.Messages[message.InfoServerNotRunning].Renew(serverPid).Error())
+			fmt.Println(message.NewMessage(message.InfoServerNotRunning, serverPid).Error())
 		}
+
+		os.Exit(constant.DefaultNormalExitCode)
 	},
 }
 

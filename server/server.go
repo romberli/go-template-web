@@ -13,47 +13,109 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package server
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/romberli/go-template/pkg/message"
+	"github.com/gin-gonic/gin"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/romberli/go-template/pkg/message"
+	"github.com/romberli/go-template/router"
 )
 
-type Server struct {
-	Port    int
-	PidFile string
+type Server interface {
+	// Addr returns listen address
+	Addr() string
+	// PidFile returns pid file path
+	PidFile() string
+	// Router returns router
+	Router() router.Router
+	// Register registers router path
+	Register()
+	// Run runs server
+	Run()
+	// Stop stops server
+	Stop()
 }
 
-func NewServer(port int, pidFile string) *Server {
-	return &Server{
-		port,
-		pidFile,
+var _ Server = (*server)(nil)
+
+type server struct {
+	*http.Server
+	addr    string
+	pidFile string
+	router  router.Router
+}
+
+// NewServer returns new *server
+func NewServer(addr string, pidFile string, readTimeout, writeTimeout int, router router.Router) *server {
+	return &server{
+		Server: &http.Server{
+			Addr:         addr,
+			Handler:      router,
+			ReadTimeout:  time.Duration(readTimeout) * time.Second,
+			WriteTimeout: time.Duration(writeTimeout) * time.Second,
+		},
+		addr:    addr,
+		pidFile: pidFile,
+		router:  router,
 	}
 }
 
-func (s *Server) Run() {
-	fmt.Println(fmt.Sprintf("server started. port: %d, pid file: %s", s.Port, s.PidFile))
-
-	for i := 0; i < 30; i++ {
-		log.Infof("%d time", i)
-		time.Sleep(1 * time.Second)
+// NewServerWithDefaultRouter returns new *server with default gin router
+func NewServerWithDefaultRouter(addr string, pidFile string, readTimeout, writeTimeout int) *server {
+	if log.GetLevel() != zapcore.DebugLevel {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
-	s.Stop()
+	r := router.NewGinRouter()
+
+	return NewServer(addr, pidFile, readTimeout, writeTimeout, r)
 }
 
-func (s *Server) Stop() {
-	err := linux.RemovePidFile(s.PidFile)
+// Addr returns listen address
+func (s *server) Addr() string {
+	return s.addr
+}
+
+// PidFile returns pid file path
+func (s *server) PidFile() string {
+	return s.pidFile
+}
+
+// Router returns router
+func (s *server) Router() router.Router {
+	return s.router
+}
+
+// Register registers router path
+func (s *server) Register() {
+	s.router.Register()
+}
+
+// Run runs server
+func (s *server) Run() {
+	fmt.Println(fmt.Sprintf("server started. addr: %s, pid file: %s", s.addr, s.pidFile))
+
+	err := s.router.Run(s.addr)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrRemovePidFile].Error(), err.Error()))
+		log.Errorf("server run failed.\n%s", err.Error())
+	}
+}
+
+// Stop stops server
+func (s *server) Stop() {
+	err := linux.RemovePidFile(s.pidFile)
+	if err != nil {
+		log.Error(message.NewMessage(message.ErrRemovePidFile, s.pidFile, err.Error()).Error())
 	}
 
 	os.Exit(constant.DefaultNormalExitCode)

@@ -13,14 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 package cmd
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
@@ -28,6 +26,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/romberli/go-template/config"
+	"github.com/romberli/go-template/pkg/message"
 )
 
 // stopCmd represents the stop command
@@ -43,40 +42,42 @@ var stopCmd = &cobra.Command{
 		// init config
 		err = initConfig()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrInitConfig].Error(), err.Error()))
+			fmt.Println(message.NewMessage(message.ErrInitConfig, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
-		// kill server with given pid
+		// shutdown server with given pid
 		if serverPid != constant.DefaultRandomInt {
-			err = linux.KillServer(serverPid)
+			err = linux.ShutdownServer(serverPid)
 			if err != nil {
-				log.CloneStdoutLogger().Errorf(fmt.Sprintf("%s\n%s",
-					message.Messages[message.ErrKillServerWithPid].Renew(serverPid).Error(), err.Error()))
+				log.CloneStdoutLogger().Error(
+					message.NewMessage(message.ErrKillServerWithPid, serverPid, err.Error()).Error())
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
-			log.CloneStdoutLogger().Error(message.Messages[message.InfoServerStop].Renew(serverPid).Error())
-
-			return
+			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStop, serverPid).Error())
+			os.Exit(constant.DefaultNormalExitCode)
 		}
 
 		// get pid from pid file
 		serverPidFile = viper.GetString(config.ServerPidFileKey)
 		serverPid, err = linux.GetPidFromPidFile(serverPidFile)
 		if err != nil {
-			log.CloneStdoutLogger().Error(fmt.Sprintf("%s\n%s",
-				message.Messages[message.ErrGetPidFromPidFile].Renew(serverPidFile).Error(), err.Error()))
+			log.CloneStdoutLogger().Errorf(
+				message.NewMessage(message.ErrGetPidFromPidFile, serverPidFile, err.Error()).Error())
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
 		// kill server with pid and pid file
 		err = linux.KillServer(serverPid, serverPidFile)
 		if err != nil {
-			log.CloneStdoutLogger().Error(fmt.Sprintf("%s\n%s",
-				message.Messages[message.ErrKillServerWithPidFile].Renew(serverPid, serverPidFile).Error(), err.Error()))
+			log.CloneStdoutLogger().Error(
+				message.NewMessage(message.ErrKillServerWithPidFile, serverPid, serverPidFile, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
-		log.CloneStdoutLogger().Info(message.Messages[message.InfoServerStop].Renew(serverPid, serverPidFile).Error())
+		log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStop, serverPid, serverPidFile).Error())
+		os.Exit(constant.DefaultNormalExitCode)
 	},
 }
 

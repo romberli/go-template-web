@@ -19,7 +19,6 @@ package config
 import (
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -50,9 +49,11 @@ func SetDefaultConfig(baseDir string) {
 	viper.SetDefault(LogMaxDaysKey, log.DefaultLogMaxDays)
 	viper.SetDefault(LogMaxBackupsKey, log.DefaultLogMaxBackups)
 	// server
-	viper.SetDefault(ServerPortKey, DefaultServerPort)
+	viper.SetDefault(ServerAddrKey, DefaultServerAddr)
 	defaultPidFile := filepath.Join(baseDir, fmt.Sprintf("%s.pid", DefaultCommandName))
 	viper.SetDefault(ServerPidFileKey, defaultPidFile)
+	viper.SetDefault(ServerReadTimeoutKey, DefaultServerReadTimeout)
+	viper.SetDefault(ServerWriteTimeoutKey, DefaultServerWriteTimeout)
 }
 
 // ValidateConfig validates if the configuration is valid
@@ -100,7 +101,7 @@ func ValidateLog() error {
 	}
 	logFileName = strings.TrimSpace(logFileName)
 	if logFileName == constant.EmptyString {
-		merr = multierror.Append(merr, message.Messages[message.ErrEmptyLogFileName])
+		merr = multierror.Append(merr, message.NewMessage(message.ErrEmptyLogFileName))
 	}
 	isAbs := filepath.IsAbs(logFileName)
 	if !isAbs {
@@ -111,7 +112,7 @@ func ValidateLog() error {
 	}
 	valid, _ = govalidator.IsFilePath(logFileName)
 	if !valid {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogFileName].Renew(logFileName))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogFileName, logFileName))
 	}
 
 	// validate log.level
@@ -124,7 +125,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if !valid {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogLevel].Renew(logLevel))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogLevel, logLevel))
 	}
 
 	// validate log.format
@@ -137,7 +138,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if !valid {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogFormat].Renew(logFormat))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogFormat, logFormat))
 	}
 
 	// validate log.maxSize
@@ -146,7 +147,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if logMaxSize < MinLogMaxSize || logMaxSize > MaxLogMaxSize {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogMaxSize].Renew(MinLogMaxSize, MaxLogMaxSize, logMaxSize))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxSize, MinLogMaxSize, MaxLogMaxSize, logMaxSize))
 	}
 
 	// validate log.maxDays
@@ -155,7 +156,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if logMaxDays < MinLogMaxDays || logMaxDays > MaxLogMaxDays {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogMaxDays].Renew(MinLogMaxDays, MaxLogMaxDays, logMaxDays))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxDays, MinLogMaxDays, MaxLogMaxDays, logMaxDays))
 	}
 
 	// validate log.maxBackups
@@ -164,7 +165,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if logMaxBackups < MinLogMaxDays || logMaxBackups > MaxLogMaxDays {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogMaxBackups].Renew(MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxBackups, MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
 	}
 
 	return merr.ErrorOrNil()
@@ -174,13 +175,21 @@ func ValidateLog() error {
 func ValidateServer() error {
 	merr := &multierror.Error{}
 
-	// validate server.port
-	serverPort, err := cast.ToIntE(viper.Get(ServerPortKey))
+	// validate server.addr
+	serverAddr, err := cast.ToStringE(viper.Get(ServerAddrKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
-	if !govalidator.IsPort(strconv.Itoa(serverPort)) {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidServerPort].Renew(constant.MinPort, constant.MaxPort, serverPort))
+	serverAddrList := strings.Split(serverAddr, constant.ColonString)
+
+	switch len(serverAddrList) {
+	case 2:
+		port := serverAddrList[1]
+		if !govalidator.IsPort(port) {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerPort, constant.MinPort, constant.MaxPort, port))
+		}
+	default:
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerAddr, serverAddr))
 	}
 
 	// validate server.pidFile
@@ -197,7 +206,25 @@ func ValidateServer() error {
 	}
 	ok, _ := govalidator.IsFilePath(serverPidFile)
 	if !ok {
-		merr = multierror.Append(merr, message.Messages[message.ErrNotValidPidFile].Renew(serverPidFile))
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidPidFile, serverPidFile))
+	}
+
+	// validate server.readTimeout
+	serverReadTimeout, err := cast.ToIntE(viper.Get(ServerReadTimeoutKey))
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	if serverReadTimeout < MinServerReadTimeout || serverReadTimeout > MaxServerReadTimeout {
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerReadTimeout, MinServerReadTimeout, MaxServerWriteTimeout, serverReadTimeout))
+	}
+
+	// validate server.writeTimeout
+	serverWriteTimeout, err := cast.ToIntE(viper.Get(ServerWriteTimeoutKey))
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	}
+	if serverWriteTimeout < MinServerWriteTimeout || serverWriteTimeout > MaxServerWriteTimeout {
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerWriteTimeout, MinServerWriteTimeout, MaxServerWriteTimeout, serverWriteTimeout))
 	}
 
 	return merr.ErrorOrNil()

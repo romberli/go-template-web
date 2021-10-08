@@ -22,7 +22,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
@@ -33,19 +32,25 @@ import (
 )
 
 var (
-	baseDir       string
-	cfgFile       string
-	daemon        bool
-	daemonStr     string
+	// config
+	baseDir string
+	cfgFile string
+	// daemon
+	daemon    bool
+	daemonStr string
+	// log
 	logFileName   string
 	logLevel      string
 	logFormat     string
 	logMaxSize    int
 	logMaxDays    int
 	logMaxBackups int
-	serverPort    int
-	serverPid     int
-	serverPidFile string
+	// server
+	serverAddr         string
+	serverPid          int
+	serverPidFile      string
+	serverReadTimeout  int
+	serverWriteTimeout int
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -58,15 +63,18 @@ var rootCmd = &cobra.Command{
 		if len(args) == 0 {
 			err := cmd.Help()
 			if err != nil {
-				fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrPrintHelpInfo].Error(), err.Error()))
+				fmt.Println(message.NewMessage(message.ErrPrintHelpInfo, err.Error()).Error())
+				os.Exit(constant.DefaultAbnormalExitCode)
 			}
-			return
+
+			os.Exit(constant.DefaultNormalExitCode)
 		}
 
 		// init config
 		err := initConfig()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrInitConfig].Error(), err.Error()))
+			fmt.Println(message.NewMessage(message.ErrInitConfig, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 	},
 }
@@ -97,10 +105,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", constant.DefaultRandomString, fmt.Sprintf("specify the log format(default: %s)", log.DefaultLogFormat))
 	rootCmd.PersistentFlags().IntVar(&logMaxSize, "log-max-size", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max size(default: %d)", log.DefaultLogMaxSize))
 	rootCmd.PersistentFlags().IntVar(&logMaxDays, "log-max-days", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max days(default: %d)", log.DefaultLogMaxDays))
-	rootCmd.PersistentFlags().IntVar(&logMaxBackups, "log-max-backups", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max size(default: %d)", log.DefaultLogMaxBackups))
+	rootCmd.PersistentFlags().IntVar(&logMaxBackups, "log-max-backups", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max backups(default: %d)", log.DefaultLogMaxBackups))
 	// server
-	rootCmd.PersistentFlags().IntVar(&serverPort, "server-port", constant.DefaultRandomInt, fmt.Sprintf("specify the server port(default: %d)", config.DefaultServerPort))
+	rootCmd.PersistentFlags().StringVar(&serverAddr, "server-addr", constant.DefaultRandomString, fmt.Sprintf("specify the server addr(default: %s)", config.DefaultServerAddr))
 	rootCmd.PersistentFlags().StringVar(&serverPidFile, "server-pid-file", constant.DefaultRandomString, fmt.Sprintf("specify the server pid file path(default: %s)", filepath.Join(config.DefaultBaseDir, fmt.Sprintf("%s.pid", config.DefaultCommandName))))
+	rootCmd.PersistentFlags().IntVar(&serverReadTimeout, "server-read-timeout", constant.DefaultRandomInt, fmt.Sprintf("specify the read timeout in seconds of http request(default: %d)", config.DefaultServerReadTimeout))
+	rootCmd.PersistentFlags().IntVar(&serverWriteTimeout, "server-write-timeout", constant.DefaultRandomInt, fmt.Sprintf("specify the write timeout in seconds of http request(default: %d)", config.DefaultServerWriteTimeout))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -114,19 +124,19 @@ func initConfig() error {
 	// init default config
 	err = initDefaultConfig()
 	if err != nil {
-		return multierror.Append(message.Messages[message.ErrInitDefaultConfig], err)
+		return message.NewMessage(message.ErrInitDefaultConfig, err.Error())
 	}
 
 	// read config with config file
 	err = ReadConfigFile()
 	if err != nil {
-		return multierror.Append(message.Messages[message.ErrReadConfigFile], err)
+		return message.NewMessage(message.ErrReadConfigFile, err.Error())
 	}
 
 	// override config with command line arguments
 	err = OverrideConfig()
 	if err != nil {
-		return multierror.Append(message.Messages[message.ErrOverrideCommandLineArgs], err)
+		return message.NewMessage(message.ErrOverrideCommandLineArgs, err.Error())
 	}
 
 	// init log
@@ -142,12 +152,12 @@ func initConfig() error {
 	if !isAbs {
 		fileNameAbs, err = filepath.Abs(fileName)
 		if err != nil {
-			return multierror.Append(message.Messages[message.ErrAbsoluteLogFilePath], err)
+			return message.NewMessage(message.ErrAbsoluteLogFilePath, fileName, err.Error())
 		}
 	}
 	_, _, err = log.InitFileLogger(fileNameAbs, level, format, maxSize, maxDays, maxBackups)
 	if err != nil {
-		return multierror.Append(message.Messages[message.ErrInitLogger], err)
+		return message.NewMessage(message.ErrInitLogger, err.Error())
 	}
 	log.SetDisableDoubleQuotes(true)
 	log.SetDisableEscape(true)
@@ -160,7 +170,7 @@ func initDefaultConfig() (err error) {
 	// get base dir
 	baseDir, err = filepath.Abs(config.DefaultBaseDir)
 	if err != nil {
-		return multierror.Append(message.Messages[message.ErrBaseDir].Renew(config.DefaultCommandName), err)
+		return message.NewMessage(message.ErrBaseDir, config.DefaultCommandName, err.Error())
 	}
 	// set default config value
 	config.SetDefaultConfig(baseDir)
@@ -178,7 +188,7 @@ func ReadConfigFile() (err error) {
 		viper.SetConfigFile(cfgFile)
 		err = config.ValidateConfig()
 		if err != nil {
-			return multierror.Append(message.Messages[message.ErrValidateConfig], err)
+			return message.NewMessage(message.ErrValidateConfig, err.Error())
 		}
 	}
 
@@ -220,17 +230,23 @@ func OverrideConfig() (err error) {
 	}
 
 	// override server
-	if serverPort != constant.DefaultRandomInt {
-		viper.Set(config.ServerPortKey, serverPort)
+	if serverAddr != constant.DefaultRandomString {
+		viper.Set(config.ServerAddrKey, serverAddr)
 	}
 	if serverPidFile != constant.DefaultRandomString {
 		viper.Set(config.ServerPidFileKey, serverPidFile)
+	}
+	if serverReadTimeout != constant.DefaultRandomInt {
+		viper.Set(config.ServerReadTimeoutKey, serverReadTimeout)
+	}
+	if serverWriteTimeout != constant.DefaultRandomInt {
+		viper.Set(config.ServerWriteTimeoutKey, serverWriteTimeout)
 	}
 
 	// validate configuration
 	err = config.ValidateConfig()
 	if err != nil {
-		return multierror.Append(message.Messages[message.ErrValidateConfig], err)
+		return message.NewMessage(message.ErrValidateConfig, err)
 	}
 
 	return err

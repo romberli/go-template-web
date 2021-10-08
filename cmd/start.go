@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 	"time"
 
 	"github.com/romberli/go-template/pkg/message"
@@ -49,23 +48,25 @@ var startCmd = &cobra.Command{
 		// init config
 		err = initConfig()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrInitConfig].Error(), err.Error()))
+			fmt.Println(message.NewMessage(message.ErrInitConfig, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
 		// check pid file
 		serverPidFile = viper.GetString(config.ServerPidFileKey)
 		pidFileExists, err = linux.PathExists(serverPidFile)
 		if err != nil {
-			log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrCheckServerPid].Error(), err.Error()))
+			log.Error(message.NewMessage(message.ErrCheckServerPid, err.Error()).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 		if pidFileExists {
 			isRunning, err = linux.IsRunningWithPidFile(serverPidFile)
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrCheckServerRunningStatus].Error(), err.Error()))
+				log.Error(message.NewMessage(message.ErrCheckServerRunningStatus, err.Error()).Error())
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 			if isRunning {
-				log.Error(message.Messages[message.ErrServerIsRunning].Renew(serverPidFile).Error())
+				log.Error(message.NewMessage(message.ErrServerIsRunning, serverPidFile).Error())
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 		}
@@ -85,36 +86,32 @@ var startCmd = &cobra.Command{
 			startCommand := exec.Command(os.Args[0], args...)
 			err = startCommand.Start()
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrStartAsForeground].Error(), err.Error()))
+				log.Error(message.NewMessage(message.ErrStartAsForeground, err.Error()).Error())
+				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
 			time.Sleep(time.Second)
 			os.Exit(constant.DefaultNormalExitCode)
 		} else {
-			// set sid
-			serverPid, err = syscall.Setsid()
-			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrSetSid].Error(), err.Error()))
-			}
-
 			// get pid
-			if serverPid == constant.ZeroInt || serverPid == constant.DefaultRandomInt {
-				serverPid = os.Getpid()
-			}
+			serverPid = os.Getpid()
 
 			// save pid
 			err = linux.SavePid(serverPid, serverPidFile, constant.DefaultFileMode)
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrSavePidToFile].Error(), err.Error()))
+				log.Error(message.NewMessage(message.ErrSavePidToFile, err.Error()).Error())
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
-			log.CloneStdoutLogger().Info(message.Messages[message.InfoServerStart].Renew(serverPid, serverPidFile).Error())
+			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverPid, serverPidFile).Error())
 
 			// start server
-			serverPort = viper.GetInt(config.ServerPortKey)
+			serverAddr = viper.GetString(config.ServerAddrKey)
 			serverPidFile = viper.GetString(config.ServerPidFileKey)
-			s := server.NewServer(serverPort, serverPidFile)
+			serverReadTimeout = viper.GetInt(config.ServerReadTimeoutKey)
+			serverWriteTimeout = viper.GetInt(config.ServerWriteTimeoutKey)
+			s := server.NewServerWithDefaultRouter(serverAddr, serverPidFile, serverReadTimeout, serverWriteTimeout)
+			s.Register()
 			go s.Run()
 
 			// handle signal
