@@ -232,7 +232,7 @@ func ValidateServer() error {
 
 // TrimSpaceOfArg trims spaces of given argument
 func TrimSpaceOfArg(arg string) string {
-	args := strings.SplitN(arg, "=", 2)
+	args := strings.SplitN(arg, constant.EqualString, 2)
 
 	switch len(args) {
 	case 1:
