@@ -24,6 +24,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/hashicorp/go-multierror"
+	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/common"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
@@ -99,7 +100,7 @@ func ValidateLog() error {
 	}
 	logFileName = strings.TrimSpace(logFileName)
 	if logFileName == constant.EmptyString {
-		merr = multierror.Append(merr, Messages[ErrEmptyLogFileName])
+		merr = multierror.Append(merr, message.Messages[message.ErrEmptyLogFileName])
 	}
 	isAbs := filepath.IsAbs(logFileName)
 	if !isAbs {
@@ -110,7 +111,7 @@ func ValidateLog() error {
 	}
 	valid, _ = govalidator.IsFilePath(logFileName)
 	if !valid {
-		merr = multierror.Append(merr, Messages[ErrNotValidLogFileName].Renew(logFileName))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogFileName].Renew(logFileName))
 	}
 
 	// validate log.level
@@ -123,7 +124,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if !valid {
-		merr = multierror.Append(merr, Messages[ErrNotValidLogLevel].Renew(logLevel))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogLevel].Renew(logLevel))
 	}
 
 	// validate log.format
@@ -136,7 +137,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if !valid {
-		merr = multierror.Append(merr, Messages[ErrNotValidLogFormat].Renew(logFormat))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogFormat].Renew(logFormat))
 	}
 
 	// validate log.maxSize
@@ -145,7 +146,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if logMaxSize < MinLogMaxSize || logMaxSize > MaxLogMaxSize {
-		merr = multierror.Append(merr, Messages[ErrNotValidLogMaxSize].Renew(MinLogMaxSize, MaxLogMaxSize, logMaxSize))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogMaxSize].Renew(MinLogMaxSize, MaxLogMaxSize, logMaxSize))
 	}
 
 	// validate log.maxDays
@@ -154,7 +155,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if logMaxDays < MinLogMaxDays || logMaxDays > MaxLogMaxDays {
-		merr = multierror.Append(merr, Messages[ErrNotValidLogMaxDays].Renew(MinLogMaxDays, MaxLogMaxDays, logMaxDays))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogMaxDays].Renew(MinLogMaxDays, MaxLogMaxDays, logMaxDays))
 	}
 
 	// validate log.maxBackups
@@ -163,7 +164,7 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, err)
 	}
 	if logMaxBackups < MinLogMaxDays || logMaxBackups > MaxLogMaxDays {
-		merr = multierror.Append(merr, Messages[ErrNotValidLogMaxBackups].Renew(MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidLogMaxBackups].Renew(MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
 	}
 
 	return merr.ErrorOrNil()
@@ -179,7 +180,7 @@ func ValidateServer() error {
 		merr = multierror.Append(merr, err)
 	}
 	if !govalidator.IsPort(strconv.Itoa(serverPort)) {
-		merr = multierror.Append(merr, Messages[ErrNotValidServerPort].Renew(constant.MinPort, constant.MaxPort, serverPort))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidServerPort].Renew(constant.MinPort, constant.MaxPort, serverPort))
 	}
 
 	// validate server.pidFile
@@ -196,7 +197,7 @@ func ValidateServer() error {
 	}
 	ok, _ := govalidator.IsFilePath(serverPidFile)
 	if !ok {
-		merr = multierror.Append(merr, Messages[ErrNotValidPidFile].Renew(serverPidFile))
+		merr = multierror.Append(merr, message.Messages[message.ErrNotValidPidFile].Renew(serverPidFile))
 	}
 
 	return merr.ErrorOrNil()

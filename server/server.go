@@ -21,11 +21,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
-
-	"github.com/romberli/go-template/config"
 )
 
 type Server struct {
@@ -54,7 +53,7 @@ func (s *Server) Run() {
 func (s *Server) Stop() {
 	err := linux.RemovePidFile(s.PidFile)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s\n%s", config.Messages[config.ErrRemovePidFile].Error(), err.Error()))
+		log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrRemovePidFile].Error(), err.Error()))
 	}
 
 	os.Exit(constant.DefaultNormalExitCode)

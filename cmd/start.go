@@ -23,6 +23,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
@@ -48,23 +49,23 @@ var startCmd = &cobra.Command{
 		// init config
 		err = initConfig()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", config.Messages[config.ErrInitConfig].Error(), err.Error()))
+			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrInitConfig].Error(), err.Error()))
 		}
 
 		// check pid file
 		serverPidFile = viper.GetString(config.ServerPidFileKey)
 		pidFileExists, err = linux.PathExists(serverPidFile)
 		if err != nil {
-			log.Error(fmt.Sprintf("%s\n%s", config.Messages[config.ErrCheckServerPid].Error(), err.Error()))
+			log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrCheckServerPid].Error(), err.Error()))
 		}
 		if pidFileExists {
 			isRunning, err = linux.IsRunningWithPidFile(serverPidFile)
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", config.Messages[config.ErrCheckServerRunningStatus].Error(), err.Error()))
+				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrCheckServerRunningStatus].Error(), err.Error()))
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 			if isRunning {
-				log.Error(config.Messages[config.ErrServerIsRunning].Renew(serverPidFile).Error())
+				log.Error(message.Messages[message.ErrServerIsRunning].Renew(serverPidFile).Error())
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 		}
@@ -84,7 +85,7 @@ var startCmd = &cobra.Command{
 			startCommand := exec.Command(os.Args[0], args...)
 			err = startCommand.Start()
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", config.Messages[config.ErrStartAsForeground].Error(), err.Error()))
+				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrStartAsForeground].Error(), err.Error()))
 			}
 
 			time.Sleep(time.Second)
@@ -93,7 +94,7 @@ var startCmd = &cobra.Command{
 			// set sid
 			serverPid, err = syscall.Setsid()
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", config.Messages[config.ErrSetSid].Error(), err.Error()))
+				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrSetSid].Error(), err.Error()))
 			}
 
 			// get pid
@@ -104,11 +105,11 @@ var startCmd = &cobra.Command{
 			// save pid
 			err = linux.SavePid(serverPid, serverPidFile, constant.DefaultFileMode)
 			if err != nil {
-				log.Error(fmt.Sprintf("%s\n%s", config.Messages[config.ErrSavePidToFile].Error(), err.Error()))
+				log.Error(fmt.Sprintf("%s\n%s", message.Messages[message.ErrSavePidToFile].Error(), err.Error()))
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
-			log.CloneStdoutLogger().Info(config.Messages[config.InfoServerStart].Renew(serverPid, serverPidFile).Error())
+			log.CloneStdoutLogger().Info(message.Messages[message.InfoServerStart].Renew(serverPid, serverPidFile).Error())
 
 			// start server
 			serverPort = viper.GetInt(config.ServerPortKey)

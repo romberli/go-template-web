@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
@@ -42,7 +43,7 @@ var stopCmd = &cobra.Command{
 		// init config
 		err = initConfig()
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s\n%s", config.Messages[config.ErrInitConfig].Error(), err.Error()))
+			fmt.Println(fmt.Sprintf("%s\n%s", message.Messages[message.ErrInitConfig].Error(), err.Error()))
 		}
 
 		// kill server with given pid
@@ -50,11 +51,11 @@ var stopCmd = &cobra.Command{
 			err = linux.KillServer(serverPid)
 			if err != nil {
 				log.CloneStdoutLogger().Errorf(fmt.Sprintf("%s\n%s",
-					config.Messages[config.ErrKillServerWithPid].Renew(serverPid).Error(), err.Error()))
+					message.Messages[message.ErrKillServerWithPid].Renew(serverPid).Error(), err.Error()))
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
-			log.CloneStdoutLogger().Error(config.Messages[config.InfoServerStop].Renew(serverPid).Error())
+			log.CloneStdoutLogger().Error(message.Messages[message.InfoServerStop].Renew(serverPid).Error())
 
 			return
 		}
@@ -64,7 +65,7 @@ var stopCmd = &cobra.Command{
 		serverPid, err = linux.GetPidFromPidFile(serverPidFile)
 		if err != nil {
 			log.CloneStdoutLogger().Error(fmt.Sprintf("%s\n%s",
-				config.Messages[config.ErrGetPidFromPidFile].Renew(serverPidFile).Error(), err.Error()))
+				message.Messages[message.ErrGetPidFromPidFile].Renew(serverPidFile).Error(), err.Error()))
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
@@ -72,10 +73,10 @@ var stopCmd = &cobra.Command{
 		err = linux.KillServer(serverPid, serverPidFile)
 		if err != nil {
 			log.CloneStdoutLogger().Error(fmt.Sprintf("%s\n%s",
-				config.Messages[config.ErrKillServerWithPidFile].Renew(serverPid, serverPidFile).Error(), err.Error()))
+				message.Messages[message.ErrKillServerWithPidFile].Renew(serverPid, serverPidFile).Error(), err.Error()))
 		}
 
-		log.CloneStdoutLogger().Info(config.Messages[config.InfoServerStop].Renew(serverPid, serverPidFile).Error())
+		log.CloneStdoutLogger().Info(message.Messages[message.InfoServerStop].Renew(serverPid, serverPidFile).Error())
 	},
 }
 
