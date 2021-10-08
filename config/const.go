@@ -33,7 +33,7 @@ const (
 	MaxLogMaxDays             = constant.MaxInt
 	MinLogMaxBackups          = 1
 	MaxLogMaxBackups          = constant.MaxInt
-	DefaultServerAddr         = "0.0.0.0:6090"
+	DefaultServerAddr         = "0.0.0.0:80"
 	DefaultServerReadTimeout  = 5
 	DefaultServerWriteTimeout = 10
 	MinServerReadTimeout      = 0

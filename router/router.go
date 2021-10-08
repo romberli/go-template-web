@@ -38,11 +38,12 @@ func (gr *GinRouter) Register() {
 	// swagger
 	gr.Swagger()
 
-	// api := gr.Engine.Group("/api")
-	// v1 := api.Group("/v1")
-	// {
-	//
-	// }
+	api := gr.Engine.Group("/api")
+	v1 := api.Group("/v1")
+	{
+		// health
+		RegisterHealth(v1)
+	}
 }
 
 func (gr *GinRouter) Run(addr ...string) error {

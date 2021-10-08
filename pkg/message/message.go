@@ -19,7 +19,7 @@ import (
 	"github.com/romberli/go-util/config"
 )
 
-const DefaultMessageHeader = "AM"
+const DefaultMessageHeader = "GT"
 
 var Messages = map[int]*config.ErrMessage{}
 

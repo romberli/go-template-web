@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	ValidLogLevels = []string{"debug", "info", "warn", "warning", "error", "fatal"}
-	ValidLogFormat = []string{"text", "json"}
+	ValidLogLevels  = []string{"debug", "info", "warn", "warning", "error", "fatal"}
+	ValidLogFormats = []string{"text", "json"}
 )
 
 // SetDefaultConfig set default configuration, it is the lowest priority
@@ -120,7 +120,7 @@ func ValidateLog() error {
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
-	valid, err = common.ElementInSlice(logLevel, ValidLogLevels)
+	valid, err = common.ElementInSlice(ValidLogLevels, logLevel)
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
@@ -133,7 +133,7 @@ func ValidateLog() error {
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
-	valid, err = common.ElementInSlice(logFormat, ValidLogFormat)
+	valid, err = common.ElementInSlice(ValidLogFormats, logFormat)
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
