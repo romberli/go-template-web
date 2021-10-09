@@ -60,10 +60,10 @@ server:
   # type: int
   # available: 0 - 60
   # default: 5
-  readTimeout: 5
+  read-timeout: 5
   # description: specify the write timeout of http resp, 0 means no timeout
   # unit: second
   # type: int
   # available: 0 - 60
   # default: 10
-  writeTimeout: 10
+  write-timeout: 10
