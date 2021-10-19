@@ -186,6 +186,11 @@ func initDefaultConfig() (err error) {
 func ReadConfigFile() (err error) {
 	if cfgFile != constant.EmptyString && cfgFile != constant.DefaultRandomString {
 		viper.SetConfigFile(cfgFile)
+		viper.SetConfigType("yaml")
+		err = viper.ReadInConfig()
+		if err != nil {
+			return err
+		}
 		err = config.ValidateConfig()
 		if err != nil {
 			return message.NewMessage(message.ErrValidateConfig, err.Error())
