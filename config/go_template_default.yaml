@@ -31,17 +31,17 @@ log:
   # description: log file max size, unit is MB
   # type: int
   # default: 100
-  max-size: 100 # MB
+  maxSize: 100 # MB
   # description: specify how many days the log file will be kept after rotating,
   # older than max-days files will be removed automatically.
   # type: int
   # default: 7
-  max-days: 7
+  maxDays: 7
   # description: specify how many files will be kept after rotating,
   # the oldest log files will be removed automatically.
   # type: int
   # default: 5
-  max-backups: 5
+  maxBackups: 5
 
 # server configuration
 server:
@@ -54,16 +54,16 @@ server:
   # it is recommended to specify absolute path.
   # type: string
   # default: go_template.pid
-  pid-file: go_template.pid
+  pidFile: go_template.pid
   # description: specify the read timeout of http request, 0 means no timeout
   # unit: second
   # type: int
   # available: 0 - 60
   # default: 5
-  read-timeout: 5
+  readTimeout: 5
   # description: specify the write timeout of http resp, 0 means no timeout
   # unit: second
   # type: int
   # available: 0 - 60
   # default: 10
-  write-timeout: 10
+  writeTimeout: 10
