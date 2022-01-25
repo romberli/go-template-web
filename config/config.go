@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/pingcap/errors"
 	"github.com/romberli/go-multierror"
 	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/common"
@@ -78,14 +79,14 @@ func ValidateConfig() (err error) {
 		merr = multierror.Append(merr, err)
 	}
 
-	return merr.ErrorOrNil()
+	return errors.Trace(merr.ErrorOrNil())
 }
 
 // ValidateDaemon validates if daemon section is valid
 func ValidateDaemon() error {
 	_, err := cast.ToBoolE(viper.Get(DaemonKey))
 
-	return err
+	return errors.Trace(err)
 }
 
 // ValidateLog validates if log section is valid.
@@ -97,7 +98,7 @@ func ValidateLog() error {
 	// validate log.FileName
 	logFileName, err := cast.ToStringE(viper.Get(LogFileNameKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	logFileName = strings.TrimSpace(logFileName)
 	if logFileName == constant.EmptyString {
@@ -107,7 +108,7 @@ func ValidateLog() error {
 	if !isAbs {
 		logFileName, err = filepath.Abs(logFileName)
 		if err != nil {
-			merr = multierror.Append(merr, err)
+			merr = multierror.Append(merr, errors.Trace(err))
 		}
 	}
 	valid, _ = govalidator.IsFilePath(logFileName)
@@ -118,7 +119,7 @@ func ValidateLog() error {
 	// validate log.level
 	logLevel, err := cast.ToStringE(viper.Get(LogLevelKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	valid, err = common.ElementInSlice(ValidLogLevels, logLevel)
 	if err != nil {
@@ -131,7 +132,7 @@ func ValidateLog() error {
 	// validate log.format
 	logFormat, err := cast.ToStringE(viper.Get(LogFormatKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	valid, err = common.ElementInSlice(ValidLogFormats, logFormat)
 	if err != nil {
@@ -144,7 +145,7 @@ func ValidateLog() error {
 	// validate log.maxSize
 	logMaxSize, err := cast.ToIntE(viper.Get(LogMaxSizeKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	if logMaxSize < MinLogMaxSize || logMaxSize > MaxLogMaxSize {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxSize, MinLogMaxSize, MaxLogMaxSize, logMaxSize))
@@ -153,7 +154,7 @@ func ValidateLog() error {
 	// validate log.maxDays
 	logMaxDays, err := cast.ToIntE(viper.Get(LogMaxDaysKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	if logMaxDays < MinLogMaxDays || logMaxDays > MaxLogMaxDays {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxDays, MinLogMaxDays, MaxLogMaxDays, logMaxDays))
@@ -162,7 +163,7 @@ func ValidateLog() error {
 	// validate log.maxBackups
 	logMaxBackups, err := cast.ToIntE(viper.Get(LogMaxBackupsKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	if logMaxBackups < MinLogMaxDays || logMaxBackups > MaxLogMaxDays {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxBackups, MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
@@ -178,7 +179,7 @@ func ValidateServer() error {
 	// validate server.addr
 	serverAddr, err := cast.ToStringE(viper.Get(ServerAddrKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	serverAddrList := strings.Split(serverAddr, constant.ColonString)
 
@@ -195,13 +196,13 @@ func ValidateServer() error {
 	// validate server.pidFile
 	serverPidFile, err := cast.ToStringE(viper.Get(ServerPidFileKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	isAbs := filepath.IsAbs(serverPidFile)
 	if !isAbs {
 		serverPidFile, err = filepath.Abs(serverPidFile)
 		if err != nil {
-			merr = multierror.Append(merr, err)
+			merr = multierror.Append(merr, errors.Trace(err))
 		}
 	}
 	ok, _ := govalidator.IsFilePath(serverPidFile)
@@ -212,7 +213,7 @@ func ValidateServer() error {
 	// validate server.readTimeout
 	serverReadTimeout, err := cast.ToIntE(viper.Get(ServerReadTimeoutKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	if serverReadTimeout < MinServerReadTimeout || serverReadTimeout > MaxServerReadTimeout {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerReadTimeout, MinServerReadTimeout, MaxServerWriteTimeout, serverReadTimeout))
@@ -221,7 +222,7 @@ func ValidateServer() error {
 	// validate server.writeTimeout
 	serverWriteTimeout, err := cast.ToIntE(viper.Get(ServerWriteTimeoutKey))
 	if err != nil {
-		merr = multierror.Append(merr, err)
+		merr = multierror.Append(merr, errors.Trace(err))
 	}
 	if serverWriteTimeout < MinServerWriteTimeout || serverWriteTimeout > MaxServerWriteTimeout {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerWriteTimeout, MinServerWriteTimeout, MaxServerWriteTimeout, serverWriteTimeout))

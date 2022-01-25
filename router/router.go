@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pingcap/errors"
+	_ "github.com/romberli/go-template/docs"
 	"github.com/romberli/log"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap/zapcore"
-
-	_ "github.com/romberli/go-template/docs"
 )
 
 type Router interface {
@@ -47,7 +47,7 @@ func (gr *GinRouter) Register() {
 }
 
 func (gr *GinRouter) Run(addr ...string) error {
-	return gr.Engine.Run(addr...)
+	return errors.Trace(gr.Engine.Run(addr...))
 }
 
 func (gr *GinRouter) Swagger() {
