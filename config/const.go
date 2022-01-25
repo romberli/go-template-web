@@ -22,8 +22,7 @@ import (
 
 // global constant
 const (
-	DefaultCommandName        = "go-template"
-	DefaultErrorHeader        = "GO-TEMPLATE"
+	DefaultCommandName        = "go-template-web"
 	DefaultDaemon             = false
 	DefaultBaseDir            = constant.CurrentDir
 	DefaultLogDir             = "./log"
