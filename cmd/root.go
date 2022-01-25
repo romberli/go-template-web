@@ -22,14 +22,17 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pingcap/errors"
+	"github.com/romberli/go-template/config"
 	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/romberli/go-template/config"
 )
+
+const defaultConfigFileType = "yaml"
 
 var (
 	// config
@@ -55,15 +58,15 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "go-template",
-	Short: "go-template",
-	Long:  `go-template is a template of golang program`,
+	Use:   "go-template-web",
+	Short: "go-template-web",
+	Long:  `go-template-web is a template of golang web server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// if no subcommand is set, it will print help information.
 		if len(args) == 0 {
 			err := cmd.Help()
 			if err != nil {
-				fmt.Println(message.NewMessage(message.ErrPrintHelpInfo, err.Error()).Error())
+				fmt.Println(fmt.Sprintf("%+v", message.NewMessage(message.ErrPrintHelpInfo, errors.Trace(err))))
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
@@ -73,7 +76,7 @@ var rootCmd = &cobra.Command{
 		// init config
 		err := initConfig()
 		if err != nil {
-			fmt.Println(message.NewMessage(message.ErrInitConfig, err.Error()).Error())
+			fmt.Println(fmt.Sprintf("%+v", message.NewMessage(message.ErrInitConfig, err)))
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 	},
@@ -83,7 +86,7 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Println(fmt.Sprintf("%+v", errors.Trace(err)))
 		os.Exit(constant.DefaultAbnormalExitCode)
 	}
 }
@@ -130,13 +133,13 @@ func initConfig() error {
 	// read config with config file
 	err = ReadConfigFile()
 	if err != nil {
-		return message.NewMessage(message.ErrReadConfigFile, err.Error())
+		return message.NewMessage(message.ErrInitDefaultConfig, err)
 	}
 
 	// override config with command line arguments
 	err = OverrideConfig()
 	if err != nil {
-		return message.NewMessage(message.ErrOverrideCommandLineArgs, err.Error())
+		return message.NewMessage(message.ErrOverrideCommandLineArgs, err)
 	}
 
 	// init log
@@ -152,13 +155,14 @@ func initConfig() error {
 	if !isAbs {
 		fileNameAbs, err = filepath.Abs(fileName)
 		if err != nil {
-			return message.NewMessage(message.ErrAbsoluteLogFilePath, fileName, err.Error())
+			return message.NewMessage(message.ErrAbsoluteLogFilePath, errors.Trace(err), fileName)
 		}
 	}
 	_, _, err = log.InitFileLogger(fileNameAbs, level, format, maxSize, maxDays, maxBackups)
 	if err != nil {
-		return message.NewMessage(message.ErrInitLogger, err.Error())
+		return message.NewMessage(message.ErrInitLogger, err)
 	}
+
 	log.SetDisableDoubleQuotes(true)
 	log.SetDisableEscape(true)
 
@@ -170,7 +174,7 @@ func initDefaultConfig() (err error) {
 	// get base dir
 	baseDir, err = filepath.Abs(config.DefaultBaseDir)
 	if err != nil {
-		return message.NewMessage(message.ErrBaseDir, config.DefaultCommandName, err.Error())
+		return message.NewMessage(message.ErrBaseDir, errors.Trace(err), config.DefaultCommandName)
 	}
 	// set default config value
 	config.SetDefaultConfig(baseDir)
@@ -186,14 +190,14 @@ func initDefaultConfig() (err error) {
 func ReadConfigFile() (err error) {
 	if cfgFile != constant.EmptyString && cfgFile != constant.DefaultRandomString {
 		viper.SetConfigFile(cfgFile)
-		viper.SetConfigType("yaml")
+		viper.SetConfigType(defaultConfigFileType)
 		err = viper.ReadInConfig()
 		if err != nil {
-			return err
+			return errors.Trace(err)
 		}
 		err = config.ValidateConfig()
 		if err != nil {
-			return message.NewMessage(message.ErrValidateConfig, err.Error())
+			return message.NewMessage(message.ErrValidateConfig, err)
 		}
 	}
 
@@ -209,7 +213,12 @@ func OverrideConfig() (err error) {
 
 	// override daemon
 	if daemonStr != constant.DefaultRandomString {
-		viper.Set(config.DaemonKey, daemonStr)
+		daemon, err := cast.ToBoolE(daemonStr)
+		if err != nil {
+			return errors.Trace(err)
+		}
+
+		viper.Set(config.DaemonKey, daemon)
 	}
 
 	// override log

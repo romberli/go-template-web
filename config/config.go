@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/hashicorp/go-multierror"
+	"github.com/romberli/go-multierror"
 	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/common"
 	"github.com/romberli/go-util/constant"
