@@ -1,2 +1,2 @@
-# go-template
-go-template is a template of golang program.
+# go-template-web
+go-template-web is a template of golang web server.
