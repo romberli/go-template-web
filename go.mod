@@ -13,8 +13,8 @@ require (
 	github.com/romberli/go-util v0.3.16-0.20220420091455-0573eac76d8c
 	github.com/romberli/log v1.0.22
 	github.com/spf13/cast v1.4.1
-    github.com/spf13/cobra v1.2.1
-    github.com/spf13/viper v1.9.0
+	github.com/spf13/cobra v1.2.1
+	github.com/spf13/viper v1.9.0
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.0
