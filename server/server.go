@@ -27,8 +27,8 @@ import (
 	"github.com/romberli/log"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/romberli/go-template/pkg/message"
-	"github.com/romberli/go-template/router"
+	"github.com/romberli/go-template-web/pkg/message"
+	"github.com/romberli/go-template-web/router"
 )
 
 type Server interface {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pingcap/errors"
-	_ "github.com/romberli/go-template/docs"
+	_ "github.com/romberli/go-template-web/docs"
 	"github.com/romberli/log"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"

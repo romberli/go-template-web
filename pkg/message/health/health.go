@@ -1,7 +1,7 @@
 package health
 
 import (
-	"github.com/romberli/go-template/pkg/message"
+	"github.com/romberli/go-template-web/pkg/message"
 	"github.com/romberli/go-util/config"
 )
 

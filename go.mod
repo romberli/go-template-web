@@ -1,4 +1,4 @@
-module github.com/romberli/go-template
+module github.com/romberli/go-template-web
 
 go 1.16
 

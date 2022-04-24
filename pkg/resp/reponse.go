@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/romberli/log"
 
-	"github.com/romberli/go-template/pkg/message"
+	"github.com/romberli/go-template-web/pkg/message"
 )
 
 // ResponseNOK responses with given code and values,
