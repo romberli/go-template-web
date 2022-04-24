@@ -1,0 +1,7 @@
+### health.Ping
+GET http://{{baseURL}}/api/v1/health/ping
+Content-Type: application/json
+
+{
+  "token": "f3171bd9-beec-11ec-acc0-000c291d6734"
+}

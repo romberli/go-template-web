@@ -25,7 +25,7 @@ log/
 #other
 archive/*
 release/*
-http-client.env.json
+test/http-client.env.json
 .vscode/
 .test
 go_template.pid

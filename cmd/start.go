@@ -112,7 +112,7 @@ var startCmd = &cobra.Command{
 			s.Register()
 			go s.Run()
 
-			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverPid, serverPidFile).Error())
+			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverAddr, serverPid, serverPidFile).Error())
 
 			// handle signal
 			linux.HandleSignalsWithPidFile(serverPidFile)
