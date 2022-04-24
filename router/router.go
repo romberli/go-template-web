@@ -5,15 +5,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pingcap/errors"
-	_ "github.com/romberli/go-template-web/docs"
 	"github.com/romberli/log"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap/zapcore"
+
+	_ "github.com/romberli/go-template-web/docs"
 )
 
 type Router interface {
 	http.Handler
+	Use(middleware ...gin.HandlerFunc)
+	ServeHTTP(w http.ResponseWriter, req *http.Request)
 	Register()
 	Run(addr ...string) error
 }
@@ -28,6 +31,10 @@ func NewGinRouter() Router {
 	}
 
 	return &GinRouter{gin.Default()}
+}
+
+func (gr *GinRouter) Use(middleware ...gin.HandlerFunc) {
+	gr.Engine.Use(middleware...)
 }
 
 func (gr *GinRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -47,6 +54,8 @@ func (gr *GinRouter) Register() {
 }
 
 func (gr *GinRouter) Run(addr ...string) error {
+	gr.Register()
+
 	return errors.Trace(gr.Engine.Run(addr...))
 }
 

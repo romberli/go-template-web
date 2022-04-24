@@ -21,14 +21,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/romberli/go-template-web/pkg/message"
+	"github.com/romberli/go-template-web/router"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
-	"go.uber.org/zap/zapcore"
-
-	"github.com/romberli/go-template-web/pkg/message"
-	"github.com/romberli/go-template-web/router"
 )
 
 type Server interface {
@@ -38,8 +35,6 @@ type Server interface {
 	PidFile() string
 	// Router returns router
 	Router() router.Router
-	// Register registers router path
-	Register()
 	// Run runs server
 	Run()
 	// Stop stops server
@@ -70,17 +65,6 @@ func NewServer(addr string, pidFile string, readTimeout, writeTimeout int, route
 	}
 }
 
-// NewServerWithDefaultRouter returns new *server with default gin router
-func NewServerWithDefaultRouter(addr string, pidFile string, readTimeout, writeTimeout int) Server {
-	if log.GetLevel() != zapcore.DebugLevel {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	r := router.NewGinRouter()
-
-	return NewServer(addr, pidFile, readTimeout, writeTimeout, r)
-}
-
 // Addr returns listen address
 func (s *server) Addr() string {
 	return s.addr
@@ -94,11 +78,6 @@ func (s *server) PidFile() string {
 // Router returns router
 func (s *server) Router() router.Router {
 	return s.router
-}
-
-// Register registers router path
-func (s *server) Register() {
-	s.router.Register()
 }
 
 // Run runs server

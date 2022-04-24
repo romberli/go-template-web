@@ -25,6 +25,7 @@ import (
 	"github.com/pingcap/errors"
 	"github.com/romberli/go-template-web/config"
 	"github.com/romberli/go-template-web/pkg/message"
+	"github.com/romberli/go-template-web/router"
 	"github.com/romberli/go-template-web/server"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/go-util/linux"
@@ -103,13 +104,17 @@ var startCmd = &cobra.Command{
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
+			// init router
+			r := router.NewGinRouter()
+			// init server
+			s := server.NewServer(
+				viper.GetString(config.ServerAddrKey),
+				serverPidFile,
+				viper.GetInt(config.ServerReadTimeoutKey),
+				viper.GetInt(config.ServerWriteTimeoutKey),
+				r,
+			)
 			// start server
-			serverAddr = viper.GetString(config.ServerAddrKey)
-			serverPidFile = viper.GetString(config.ServerPidFileKey)
-			serverReadTimeout = viper.GetInt(config.ServerReadTimeoutKey)
-			serverWriteTimeout = viper.GetInt(config.ServerWriteTimeoutKey)
-			s := server.NewServerWithDefaultRouter(serverAddr, serverPidFile, serverReadTimeout, serverWriteTimeout)
-			s.Register()
 			go s.Run()
 
 			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverAddr, serverPid, serverPidFile).Error())
