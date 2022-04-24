@@ -103,8 +103,6 @@ var startCmd = &cobra.Command{
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
-			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverPid, serverPidFile).Error())
-
 			// start server
 			serverAddr = viper.GetString(config.ServerAddrKey)
 			serverPidFile = viper.GetString(config.ServerPidFileKey)
@@ -113,6 +111,8 @@ var startCmd = &cobra.Command{
 			s := server.NewServerWithDefaultRouter(serverAddr, serverPidFile, serverReadTimeout, serverWriteTimeout)
 			s.Register()
 			go s.Run()
+
+			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverPid, serverPidFile).Error())
 
 			// handle signal
 			linux.HandleSignalsWithPidFile(serverPidFile)

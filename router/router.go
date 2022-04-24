@@ -22,7 +22,7 @@ type GinRouter struct {
 	Engine *gin.Engine
 }
 
-func NewGinRouter() *GinRouter {
+func NewGinRouter() Router {
 	if log.GetLevel() != zapcore.DebugLevel {
 		gin.SetMode(gin.ReleaseMode)
 	}
