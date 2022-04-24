@@ -14,7 +14,7 @@ go-template
 */.idea/
 .DS_Store
 test/*.json
-config/go_template.yaml
+config/go_template_web.yaml
 
 # output
 *.out
