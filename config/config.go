@@ -237,9 +237,9 @@ func TrimSpaceOfArg(arg string) string {
 
 	switch len(args) {
 	case 1:
-		return strings.TrimSpace(args[0])
+		return strings.TrimSpace(args[constant.ZeroInt])
 	case 2:
-		argName := strings.TrimSpace(args[0])
+		argName := strings.TrimSpace(args[constant.ZeroInt])
 		argValue := strings.TrimSpace(args[1])
 		return fmt.Sprintf("%s=%s", argName, argValue)
 	default:

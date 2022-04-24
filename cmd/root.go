@@ -63,7 +63,7 @@ var rootCmd = &cobra.Command{
 	Long:  `go-template-web is a template of golang web server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// if no subcommand is set, it will print help information.
-		if len(args) == 0 {
+		if len(args) == constant.ZeroInt {
 			err := cmd.Help()
 			if err != nil {
 				fmt.Println(fmt.Sprintf("%+v", message.NewMessage(message.ErrPrintHelpInfo, errors.Trace(err))))
