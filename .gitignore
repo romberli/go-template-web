@@ -14,6 +14,7 @@ go-template-web
 */.idea/
 .DS_Store
 test/*.json
+go_template_web.yaml
 config/go_template_web.yaml
 
 # output
@@ -29,4 +30,3 @@ test/http-client.env.json
 .vscode/
 .test
 go_template_web.pid
-go_template_web.yaml
