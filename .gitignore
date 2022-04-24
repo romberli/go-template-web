@@ -31,3 +31,5 @@ test/http-client.env.json
 .test
 go_template.pid
 go_template.yaml
+go_template_web.pid
+go_template_web.yaml
