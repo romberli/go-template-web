@@ -12,6 +12,7 @@ const (
 
 // @Tags health
 // @Summary ping
+// @Accept  application/json
 // @Produce  application/json
 // @Success 200 {string} string "{"code": 200, "data": {"ping": "pong"}}"
 // @Router /api/v1/health/ping [get]
