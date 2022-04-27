@@ -27,6 +27,9 @@ var doc = `{
     "paths": {
         "/api/v1/health/ping": {
             "get": {
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
