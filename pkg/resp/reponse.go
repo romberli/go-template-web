@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
 
 	"github.com/romberli/go-template-web/pkg/message"
@@ -14,7 +15,7 @@ import (
 // otherwise, it will log info and resp 200 to client
 func ResponseNOK(c *gin.Context, code int, values ...interface{}) {
 	err := message.NewMessage(code, values...)
-	log.Errorf("%+v", err)
+	log.Errorf(constant.LogWithStackString, err)
 
 	c.String(http.StatusInternalServerError, err.Error())
 }
