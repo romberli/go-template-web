@@ -3,6 +3,20 @@ info:
   license: {}
 paths:
   /api/v1/health/ping:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"ping": "pong"}'
+          schema:
+            type: string
+      summary: ping
+      tags:
+      - health
+  /api/v1/health/status:
     get:
       consumes:
       - application/json
@@ -10,10 +24,10 @@ paths:
       - application/json
       responses:
         "200":
-          description: '{"code": 200, "data": {"ping": "pong"}}'
+          description: "0"
           schema:
             type: string
-      summary: ping
+      summary: check health status
       tags:
       - health
 swagger: "2.0"
