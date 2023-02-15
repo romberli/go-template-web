@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,17 +16,19 @@ limitations under the License.
 package server
 
 import (
+	"context"
 	"fmt"
+	"github.com/pingcap/errors"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/romberli/go-template-web/pkg/message"
 	"github.com/romberli/go-template-web/router"
 	"github.com/romberli/go-util/constant"
-	"github.com/romberli/go-util/linux"
 	"github.com/romberli/log"
 )
+
+const defaultGracefulShutdownTimeout = 5 * time.Second
 
 type Server interface {
 	// Addr returns listen address
@@ -38,7 +40,7 @@ type Server interface {
 	// Run runs server
 	Run()
 	// Stop stops server
-	Stop()
+	Stop() error
 }
 
 var _ Server = (*server)(nil)
@@ -91,12 +93,14 @@ func (s *server) Run() {
 }
 
 // Stop stops server
-func (s *server) Stop() {
-	err := linux.RemovePidFile(s.pidFile)
+func (s *server) Stop() error {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultGracefulShutdownTimeout)
+	defer cancel()
+
+	err := s.Shutdown(ctx)
 	if err != nil {
-		log.Errorf(constant.LogWithStackString, message.NewMessage(message.ErrRemovePidFile, err, s.pidFile))
-		os.Exit(constant.DefaultAbnormalExitCode)
+		return errors.Trace(err)
 	}
 
-	os.Exit(constant.DefaultNormalExitCode)
+	return nil
 }

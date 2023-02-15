@@ -33,8 +33,9 @@ import (
 )
 
 var (
-	ValidLogLevels  = []string{"debug", "info", "warn", "warning", "error", "fatal"}
-	ValidLogFormats = []string{"text", "json"}
+	ValidLogLevels                  = []string{"debug", "info", "warn", "warning", "error", "fatal"}
+	ValidLogFormats                 = []string{"text", "json"}
+	ValidServerRouterHTTPErrorCodes = []int{200, 500}
 )
 
 // SetDefaultConfig set default configuration, it is the lowest priority
@@ -49,12 +50,17 @@ func SetDefaultConfig(baseDir string) {
 	viper.SetDefault(LogMaxSizeKey, log.DefaultLogMaxSize)
 	viper.SetDefault(LogMaxDaysKey, log.DefaultLogMaxDays)
 	viper.SetDefault(LogMaxBackupsKey, log.DefaultLogMaxBackups)
+	viper.SetDefault(LogRotateOnStartupKey, DefaultRotateOnStartup)
 	// server
 	viper.SetDefault(ServerAddrKey, DefaultServerAddr)
 	defaultPidFile := filepath.Join(baseDir, fmt.Sprintf("%s.pid", DefaultCommandName))
 	viper.SetDefault(ServerPidFileKey, defaultPidFile)
 	viper.SetDefault(ServerReadTimeoutKey, DefaultServerReadTimeout)
 	viper.SetDefault(ServerWriteTimeoutKey, DefaultServerWriteTimeout)
+	viper.SetDefault(ServerPProfEnabledKey, DefaultServerPProfEnabled)
+	viper.SetDefault(ServerRouterAlternativeBasePathKey, DefaultServerRouterAlternativeBasePath)
+	viper.SetDefault(ServerRouterAlternativeBodyPathKey, DefaultServerRouterAlternativeBodyPath)
+	viper.SetDefault(ServerRouterHTTPErrorCodeKey, DefaultServerRouterHTTPErrorCode)
 }
 
 // ValidateConfig validates if the configuration is valid
@@ -169,6 +175,12 @@ func ValidateLog() error {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxBackups, MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
 	}
 
+	// validate log.rotateOnStartup
+	_, err = cast.ToBoolE(viper.Get(LogRotateOnStartupKey))
+	if err != nil {
+		merr = multierror.Append(merr, errors.Trace(err))
+	}
+
 	return merr.ErrorOrNil()
 }
 
@@ -226,6 +238,40 @@ func ValidateServer() error {
 	}
 	if serverWriteTimeout < MinServerWriteTimeout || serverWriteTimeout > MaxServerWriteTimeout {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerWriteTimeout, MinServerWriteTimeout, MaxServerWriteTimeout, serverWriteTimeout))
+	}
+
+	// validate server.pprof.enabled
+	_, err = cast.ToBoolE(viper.Get(ServerPProfEnabledKey))
+	if err != nil {
+		merr = multierror.Append(merr, errors.Trace(err))
+	}
+
+	// validate server.router.alternativeBaseURL
+	serverRouterAlternativeBasePath, err := cast.ToStringE(viper.Get(ServerRouterAlternativeBasePathKey))
+	if err != nil {
+		merr = multierror.Append(merr, errors.Trace(err))
+	} else if serverRouterAlternativeBasePath != constant.EmptyString && !strings.HasPrefix(serverRouterAlternativeBasePath, constant.SlashString) {
+		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerRouterAlternativeBasePath, serverRouterAlternativeBasePath))
+	}
+
+	// validate server.router.bodyPath
+	_, err = cast.ToStringE(viper.Get(ServerRouterAlternativeBodyPathKey))
+	if err != nil {
+		merr = multierror.Append(merr, errors.Trace(err))
+	}
+
+	// validate server.router.httpErrorCode
+	serverRouterHttpErrorCode, err := cast.ToIntE(viper.Get(ServerRouterHTTPErrorCodeKey))
+	if err != nil {
+		merr = multierror.Append(merr, errors.Trace(err))
+	} else {
+		valid, err := common.ElementInSlice(ValidServerRouterHTTPErrorCodes, serverRouterHttpErrorCode)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		}
+		if !valid {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidServerRouterHTTPErrorCode, serverRouterHttpErrorCode))
+		}
 	}
 
 	return merr.ErrorOrNil()

@@ -13,7 +13,8 @@ func init() {
 
 const (
 	// info
-	InfoHealthPing = 200101
+	InfoHealthStatus = 209001
+	InfoHealthPing   = 200102
 )
 
 func initHealthDebugMessage() {
@@ -21,6 +22,7 @@ func initHealthDebugMessage() {
 }
 
 func initHealthInfoMessage() {
+	message.Messages[InfoHealthStatus] = config.NewErrMessage(message.DefaultMessageHeader, InfoHealthStatus, "health: check status completed")
 	message.Messages[InfoHealthPing] = config.NewErrMessage(message.DefaultMessageHeader, InfoHealthPing, "health: ping completed")
 }
 

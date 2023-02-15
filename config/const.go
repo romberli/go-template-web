@@ -18,6 +18,7 @@ package config
 
 import (
 	"github.com/romberli/go-util/constant"
+	"net/http"
 )
 
 // global constant
@@ -30,35 +31,50 @@ const (
 	DaemonArgTrue  = "--daemon=true"
 	DaemonArgFalse = "--daemon=false"
 	// log
-	DefaultLogDir    = "./log"
-	MinLogMaxSize    = 1
-	MaxLogMaxSize    = constant.MaxInt
-	MinLogMaxDays    = 1
-	MaxLogMaxDays    = constant.MaxInt
-	MinLogMaxBackups = 1
-	MaxLogMaxBackups = constant.MaxInt
+	DefaultLogDir          = "./log"
+	MinLogMaxSize          = 1
+	MaxLogMaxSize          = constant.MaxInt
+	MinLogMaxDays          = 1
+	MaxLogMaxDays          = constant.MaxInt
+	MinLogMaxBackups       = 1
+	MaxLogMaxBackups       = constant.MaxInt
+	DefaultRotateOnStartup = false
+
 	// server
-	DefaultServerAddr         = "0.0.0.0:80"
-	DefaultServerReadTimeout  = 5
-	DefaultServerWriteTimeout = 10
-	MinServerReadTimeout      = 0
-	MaxServerReadTimeout      = 60
-	MinServerWriteTimeout     = 1
-	MaxServerWriteTimeout     = 60
+	DefaultServerAddr                      = "0.0.0.0:80"
+	DefaultServerReadTimeout               = 5
+	DefaultServerWriteTimeout              = 10
+	MinServerReadTimeout                   = 0
+	MaxServerReadTimeout                   = 60
+	MinServerWriteTimeout                  = 1
+	MaxServerWriteTimeout                  = 60
+	DefaultServerPProfEnabled              = false
+	DefaultServerRouterAlternativeBasePath = constant.EmptyString
+	DefaultServerRouterAlternativeBodyPath = constant.EmptyString
+	DefaultServerRouterHTTPErrorCode       = http.StatusInternalServerError
 )
 
 // configuration constant
 const (
-	ConfKey               = "config"
-	DaemonKey             = "daemon"
+	// config
+	ConfKey = "config"
+	// daemon
+	DaemonKey = "daemon"
+	// log
 	LogFileNameKey        = "log.fileName"
 	LogLevelKey           = "log.level"
 	LogFormatKey          = "log.format"
 	LogMaxSizeKey         = "log.maxSize"
 	LogMaxDaysKey         = "log.maxDays"
 	LogMaxBackupsKey      = "log.maxBackups"
-	ServerAddrKey         = "server.addr"
-	ServerPidFileKey      = "server.pidFile"
-	ServerReadTimeoutKey  = "server.readTimeout"
-	ServerWriteTimeoutKey = "server.writeTimeout"
+	LogRotateOnStartupKey = "log.rotateOnStartup"
+	// server
+	ServerAddrKey                      = "server.addr"
+	ServerPidFileKey                   = "server.pidFile"
+	ServerReadTimeoutKey               = "server.readTimeout"
+	ServerWriteTimeoutKey              = "server.writeTimeout"
+	ServerPProfEnabledKey              = "server.pprof.enabled"
+	ServerRouterAlternativeBasePathKey = "server.router.alternativeBasePath"
+	ServerRouterAlternativeBodyPathKey = "server.router.alternativeBodyPath"
+	ServerRouterHTTPErrorCodeKey       = "server.router.httpErrorCode"
 )

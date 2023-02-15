@@ -117,6 +117,7 @@ var startCmd = &cobra.Command{
 
 			// init router
 			r := router.NewGinRouter()
+			r.Register()
 			// init server
 			s := server.NewServer(
 				viper.GetString(config.ServerAddrKey),
@@ -131,7 +132,7 @@ var startCmd = &cobra.Command{
 			log.CloneStdoutLogger().Info(message.NewMessage(message.InfoServerStart, serverAddr, serverPid, serverPidFile).Error())
 
 			// handle signal
-			linux.HandleSignalsWithPidFile(serverPidFile)
+			linux.HandleSignals(serverPidFile, s.Stop)
 		}
 	},
 }

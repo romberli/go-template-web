@@ -42,18 +42,23 @@ var (
 	daemon    bool
 	daemonStr string
 	// log
-	logFileName   string
-	logLevel      string
-	logFormat     string
-	logMaxSize    int
-	logMaxDays    int
-	logMaxBackups int
+	logFileName           string
+	logLevel              string
+	logFormat             string
+	logMaxSize            int
+	logMaxDays            int
+	logMaxBackups         int
+	logRotateOnStartupStr string
 	// server
-	serverAddr         string
-	serverPid          int
-	serverPidFile      string
-	serverReadTimeout  int
-	serverWriteTimeout int
+	serverAddr                      string
+	serverPid                       int
+	serverPidFile                   string
+	serverReadTimeout               int
+	serverWriteTimeout              int
+	serverPProfEnabledStr           string
+	serverRouterAlternativeBasePath string
+	serverRouterAlternativeBodyPath string
+	serverRouterHTTPErrorCode       int
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -109,11 +114,16 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&logMaxSize, "log-max-size", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max size(default: %d)", log.DefaultLogMaxSize))
 	rootCmd.PersistentFlags().IntVar(&logMaxDays, "log-max-days", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max days(default: %d)", log.DefaultLogMaxDays))
 	rootCmd.PersistentFlags().IntVar(&logMaxBackups, "log-max-backups", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max backups(default: %d)", log.DefaultLogMaxBackups))
+	rootCmd.PersistentFlags().StringVar(&logRotateOnStartupStr, "log-rotate-on-startup", constant.DefaultRandomString, fmt.Sprintf("specify if rotating the log file on startup(default: %s)", constant.FalseString))
 	// server
 	rootCmd.PersistentFlags().StringVar(&serverAddr, "server-addr", constant.DefaultRandomString, fmt.Sprintf("specify the server addr(default: %s)", config.DefaultServerAddr))
 	rootCmd.PersistentFlags().StringVar(&serverPidFile, "server-pid-file", constant.DefaultRandomString, fmt.Sprintf("specify the server pid file path(default: %s)", filepath.Join(config.DefaultBaseDir, fmt.Sprintf("%s.pid", config.DefaultCommandName))))
 	rootCmd.PersistentFlags().IntVar(&serverReadTimeout, "server-read-timeout", constant.DefaultRandomInt, fmt.Sprintf("specify the read timeout in seconds of http request(default: %d)", config.DefaultServerReadTimeout))
 	rootCmd.PersistentFlags().IntVar(&serverWriteTimeout, "server-write-timeout", constant.DefaultRandomInt, fmt.Sprintf("specify the write timeout in seconds of http request(default: %d)", config.DefaultServerWriteTimeout))
+	rootCmd.PersistentFlags().StringVar(&serverPProfEnabledStr, "server-pprof-enabled", constant.DefaultRandomString, fmt.Sprintf("specify if enable the pprof(default: %s)", constant.FalseString))
+	rootCmd.PersistentFlags().StringVar(&serverRouterAlternativeBasePath, "server-router-alternative-base-path", constant.DefaultRandomString, fmt.Sprintf("specify the alternative base path(default: %s)", config.DefaultServerRouterAlternativeBasePath))
+	rootCmd.PersistentFlags().StringVar(&serverRouterAlternativeBodyPath, "server-router-alternative-body-path", constant.DefaultRandomString, fmt.Sprintf("specify the alternative body path of the json body of the http request(default: %s)", config.DefaultServerRouterAlternativeBodyPath))
+	rootCmd.PersistentFlags().IntVar(&serverRouterHTTPErrorCode, "server-router-http-error-code", constant.DefaultRandomInt, fmt.Sprintf("specify the http return code when the server encountered an error(default: %d)", config.DefaultServerRouterHTTPErrorCode))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -137,7 +147,7 @@ func initConfig() error {
 	}
 
 	// override config with command line arguments
-	err = OverrideConfig()
+	err = OverrideConfigByCLI()
 	if err != nil {
 		return message.NewMessage(message.ErrOverrideCommandLineArgs, err)
 	}
@@ -204,8 +214,8 @@ func ReadConfigFile() (err error) {
 	return nil
 }
 
-// OverrideConfig read configuration from command line interface, it will override the config file configuration
-func OverrideConfig() (err error) {
+// OverrideConfigByCLI read configuration from command line interface, it will override the config file configuration
+func OverrideConfigByCLI() (err error) {
 	// override config
 	if cfgFile != constant.EmptyString && cfgFile != constant.DefaultRandomString {
 		viper.Set(config.ConfKey, cfgFile)
@@ -242,6 +252,14 @@ func OverrideConfig() (err error) {
 	if logMaxBackups != constant.DefaultRandomInt {
 		viper.Set(config.LogMaxBackupsKey, logMaxBackups)
 	}
+	if logRotateOnStartupStr != constant.DefaultRandomString {
+		rotateOnStartup, err := cast.ToBoolE(logRotateOnStartupStr)
+		if err != nil {
+			return errors.Trace(err)
+		}
+
+		viper.Set(config.LogRotateOnStartupKey, rotateOnStartup)
+	}
 
 	// override server
 	if serverAddr != constant.DefaultRandomString {
@@ -255,6 +273,14 @@ func OverrideConfig() (err error) {
 	}
 	if serverWriteTimeout != constant.DefaultRandomInt {
 		viper.Set(config.ServerWriteTimeoutKey, serverWriteTimeout)
+	}
+	if serverPProfEnabledStr != constant.DefaultRandomString {
+		pprofEnabled, err := cast.ToBoolE(serverPProfEnabledStr)
+		if err != nil {
+			return errors.Trace(err)
+		}
+
+		viper.Set(config.ServerPProfEnabledKey, pprofEnabled)
 	}
 
 	// validate configuration

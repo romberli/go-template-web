@@ -1,3 +1,7 @@
+### health.Status
+GET http://{{baseURL}}/api/v1/health/status
+Content-Type: application/json
+
 ### health.Ping
-GET http://{{baseURL}}/api/v1/health/ping
+POST http://{{baseURL}}/api/v1/health/ping
 Content-Type: application/json

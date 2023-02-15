@@ -51,6 +51,11 @@ log:
   # type: int
   # default: 5
   maxBackups: 5
+  # description: specify if rotating the log file on starting up
+  # command-line-argument: --log-rotate-on-startup
+  # type: bool
+  # default: false
+  rotateOnStartup: false
 
 # server configuration
 server:
@@ -80,3 +85,29 @@ server:
   # available: 0 - 60
   # default: 10
   writeTimeout: 10
+  # description: pprof configuration
+  pprof:
+    # description: specify if enable the pprof
+    # command-line-argument: --server-pprof-enabled
+    # type: bool
+    # default: false
+    enabled: false
+  # router configuration
+  router:
+    # description: specify the alternative base path, this base path will not impact the original api path,
+    # but adds additional api paths with specified base path
+    # command-line-argument: --server-router-alternative-base-path
+    # type: string
+    # default: ""
+    alternativeBasePath: ""
+    # description: specify the real body path of the json body of the http request
+    # command-line-argument: --server-router-alternative-body-path
+    # type: string
+    # default: ""
+    alternativeBodyPath: ""
+    # description: specify the http return code when the server encountered an error
+    # command-line-argument: --server-router-http-error-code
+    # type: int
+    # available: [200, 500]
+    # default: 500
+    httpErrorCode: 500
