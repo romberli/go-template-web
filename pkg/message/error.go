@@ -110,7 +110,7 @@ func initErrorMessage() {
 	Messages[ErrGenerateNewMapWithTag] = config.NewErrMessage(DefaultMessageHeader, ErrGenerateNewMapWithTag, "generate new map with tag %s failed")
 	Messages[ErrMarshalData] = config.NewErrMessage(DefaultMessageHeader, ErrMarshalData, "marshal service failed")
 	Messages[ErrTypeConversion] = config.NewErrMessage(DefaultMessageHeader, ErrTypeConversion, "type conversion failed")
-	Messages[ErrFieldNotExistsOrWrongType] = config.NewErrMessage(DefaultMessageHeader, ErrFieldNotExistsOrWrongType, "filed does not exist or is wrong type. field name: %s")
+	Messages[ErrFieldNotExistsOrWrongType] = config.NewErrMessage(DefaultMessageHeader, ErrFieldNotExistsOrWrongType, "field does not exist or is wrong type. field name: %s")
 	Messages[ErrNotValidTimeLayout] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidTimeLayout, "time layout must be formatted as yyyy-MM-dd HH:mm:ss, %s is not valid")
 	Messages[ErrNotValidTimeDuration] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidTimeDuration, "time duration must be formatted, e.g. such as 300ms, -1.5h or 2h45m, %s is not valid")
 	Messages[ErrGinRecovery] = config.NewErrMessage(DefaultMessageHeader, ErrGinRecovery, "gin Recovery: panic recovered")
