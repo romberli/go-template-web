@@ -1,8 +1,9 @@
 package health
 
 import (
-	"github.com/romberli/go-template-web/pkg/message"
 	"github.com/romberli/go-util/config"
+
+	"github.com/romberli/go-template-web/pkg/message"
 )
 
 func init() {
@@ -13,8 +14,8 @@ func init() {
 
 const (
 	// info
-	InfoHealthStatus = 209001
-	InfoHealthPing   = 200102
+	InfoHealthStatus = 201001
+	InfoHealthPing   = 201002
 )
 
 func initHealthDebugMessage() {
