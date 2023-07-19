@@ -17,8 +17,9 @@ limitations under the License.
 package config
 
 import (
-	"github.com/romberli/go-util/constant"
 	"net/http"
+
+	"github.com/romberli/go-util/constant"
 )
 
 // global constant
@@ -39,7 +40,7 @@ const (
 	MinLogMaxBackups       = 1
 	MaxLogMaxBackups       = constant.MaxInt
 	DefaultRotateOnStartup = false
-
+	DefaultLogStdout       = false
 	// server
 	DefaultServerAddr                      = "0.0.0.0:80"
 	DefaultServerReadTimeout               = 5
@@ -68,6 +69,7 @@ const (
 	LogMaxDaysKey         = "log.maxDays"
 	LogMaxBackupsKey      = "log.maxBackups"
 	LogRotateOnStartupKey = "log.rotateOnStartup"
+	LogStdoutKey          = "log.stdout"
 	// server
 	ServerAddrKey                      = "server.addr"
 	ServerPidFileKey                   = "server.pidFile"

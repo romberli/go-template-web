@@ -18,15 +18,17 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/pingcap/errors"
-	"github.com/romberli/go-template-web/config"
-	"github.com/romberli/go-template-web/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
-	"path/filepath"
+
+	"github.com/romberli/go-template-web/config"
+	"github.com/romberli/go-template-web/pkg/message"
 )
 
 const defaultConfigFileType = "yaml"
@@ -46,6 +48,7 @@ var (
 	logMaxDays            int
 	logMaxBackups         int
 	logRotateOnStartupStr string
+	logStdoutStr          string
 	// server
 	serverAddr                      string
 	serverPid                       int
@@ -112,6 +115,7 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&logMaxDays, "log-max-days", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max days(default: %d)", log.DefaultLogMaxDays))
 	rootCmd.PersistentFlags().IntVar(&logMaxBackups, "log-max-backups", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max backups(default: %d)", log.DefaultLogMaxBackups))
 	rootCmd.PersistentFlags().StringVar(&logRotateOnStartupStr, "log-rotate-on-startup", constant.DefaultRandomString, fmt.Sprintf("specify if rotating the log file on startup(default: %s)", constant.FalseString))
+	rootCmd.PersistentFlags().StringVar(&logStdoutStr, "log-stdout", constant.DefaultRandomString, fmt.Sprintf("specify the log the message to stdout as well(default: %s)", constant.FalseString))
 	// server
 	rootCmd.PersistentFlags().StringVar(&serverAddr, "server-addr", constant.DefaultRandomString, fmt.Sprintf("specify the server addr(default: %s)", config.DefaultServerAddr))
 	rootCmd.PersistentFlags().StringVar(&serverPidFile, "server-pid-file", constant.DefaultRandomString, fmt.Sprintf("specify the server pid file path(default: %s)", filepath.Join(config.DefaultBaseDir, fmt.Sprintf("%s.pid", config.DefaultCommandName))))
@@ -172,6 +176,16 @@ func initConfig() error {
 
 	log.SetDisableDoubleQuotes(true)
 	log.SetDisableEscape(true)
+	if viper.GetBool(config.LogStdoutKey) {
+		log.AddWriteSyncer(log.NewStdoutWriteSyncer())
+	}
+
+	if viper.GetBool(config.LogRotateOnStartupKey) {
+		err = log.Rotate()
+		if err != nil {
+			return message.NewMessage(message.ErrRotateLogFile, err)
+		}
+	}
 
 	return nil
 }
