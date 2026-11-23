@@ -1,4 +1,5 @@
 # binary
+bin/
 *.exe
 *.exe~
 *.dll
@@ -14,8 +15,11 @@ go-template-web
 */.idea/
 .DS_Store
 test/*.json
-go_template_web.yaml
-config/go_template_web.yaml
+config/*.yaml
+config/*.yml
+!config/*_default.yaml
+!config/*-default.yaml
+!docs/swagger.yaml
 
 # output
 *.out

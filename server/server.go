@@ -18,14 +18,16 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/pingcap/errors"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/romberli/go-template-web/router"
+	"github.com/pingcap/errors"
+
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
+
+	"github.com/romberli/go-template-web/router"
 )
 
 const defaultGracefulShutdownTimeout = 5 * time.Second

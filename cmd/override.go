@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"os"
 	"strings"
 
 	"github.com/pingcap/errors"
@@ -11,6 +12,22 @@ import (
 	"github.com/romberli/go-template-web/config"
 	"github.com/romberli/go-template-web/pkg/message"
 )
+
+// OverrideConfigByEnv overrides the configuration by environment variables, it has top priority
+func OverrideConfigByEnv() error {
+	podName := os.Getenv(config.EnvPodNameKey)
+	viper.Set(config.EnvPodNameKey, podName)
+	podIP := os.Getenv(config.EnvPodIPKey)
+	viper.Set(config.EnvPodIPKey, podIP)
+
+	// validate configuration
+	err := config.ValidateConfig()
+	if err != nil {
+		return message.NewMessage(message.ErrValidateConfig, err)
+	}
+
+	return nil
+}
 
 // OverrideConfigByCLI read configuration from command line interface, it will override the config file configuration
 func OverrideConfigByCLI() error {
@@ -31,6 +48,15 @@ func OverrideConfigByCLI() error {
 	if err != nil {
 		return err
 	}
+	// override db
+	overrideDBByCLI()
+	// override auth
+	err = overrideAuthByCLI()
+	if err != nil {
+		return err
+	}
+	// override sm
+	overrideSMByCLI()
 	// validate configuration
 	err = config.ValidateConfig()
 	if err != nil {
@@ -136,4 +162,77 @@ func overrideServerByCLI() error {
 	}
 
 	return nil
+}
+
+// overrideDBByCLI overrides the db section by command line interface
+func overrideDBByCLI() {
+	if dbMySQLAddr != constant.DefaultRandomString {
+		viper.Set(config.DBMySQLAddrKey, dbMySQLAddr)
+	}
+	if dbMySQLName != constant.DefaultRandomString {
+		viper.Set(config.DBMySQLNameKey, dbMySQLName)
+	}
+	if dbMySQLUser != constant.DefaultRandomString {
+		viper.Set(config.DBMySQLUserKey, dbMySQLUser)
+	}
+	if dbMySQLPass != constant.DefaultRandomString {
+		viper.Set(config.DBMySQLPassKey, dbMySQLPass)
+	}
+	if dbRedisAddrs != constant.DefaultRandomString {
+		viper.Set(config.DBRedisAddrsKey, dbRedisAddrs)
+	}
+	if dbRedisUser != constant.DefaultRandomString {
+		viper.Set(config.DBRedisUserKey, dbRedisUser)
+	}
+	if dbRedisPass != constant.DefaultRandomString {
+		viper.Set(config.DBRedisPassKey, dbRedisPass)
+	}
+	if dbPoolMaxConnections != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolMaxConnectionsKey, dbPoolMaxConnections)
+	}
+	if dbPoolInitConnections != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolInitConnectionsKey, dbPoolInitConnections)
+	}
+	if dbPoolMaxIdleConnections != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolMaxIdleConnectionsKey, dbPoolMaxIdleConnections)
+	}
+	if dbPoolMaxIdleTime != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolMaxIdleTimeKey, dbPoolMaxIdleTime)
+	}
+	if dbPoolMaxWaitTime != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolMaxWaitTimeKey, dbPoolMaxWaitTime)
+	}
+	if dbPoolMaxRetryCount != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolMaxRetryCountKey, dbPoolMaxRetryCount)
+	}
+	if dbPoolKeepAliveInterval != constant.DefaultRandomInt {
+		viper.Set(config.DBPoolKeepAliveIntervalKey, dbPoolKeepAliveInterval)
+	}
+}
+
+// overrideAuthByCLI overrides the auth section by command line interface
+func overrideAuthByCLI() error {
+	if authEnabledStr != constant.DefaultRandomString {
+		authEnabled, err := cast.ToBoolE(authEnabledStr)
+		if err != nil {
+			return errors.Trace(err)
+		}
+
+		viper.Set(config.AuthEnabledKey, authEnabled)
+	}
+	if authTimestampWindow != constant.DefaultRandomInt {
+		viper.Set(config.AuthTimestampWindowKey, authTimestampWindow)
+	}
+	if authSecretTTL != constant.DefaultRandomInt {
+		viper.Set(config.AuthSecretTTLKey, authSecretTTL)
+	}
+
+	return nil
+}
+
+// overrideSMByCLI overrides the sm section by command line interface
+func overrideSMByCLI() {
+	if smGTWKey != constant.DefaultRandomString {
+		viper.Set(config.SMGTWKeyKey, smGTWKey)
+	}
 }

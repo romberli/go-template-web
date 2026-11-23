@@ -1,7 +1,31 @@
 info:
   contact: {}
-  license: {}
 paths:
+  /api/v1/cron/run:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: job id, takes precedence over job_name
+        in: body
+        name: job_id
+        schema:
+          type: integer
+      - description: job name
+        in: body
+        name: job_name
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"message": "job run completed"}'
+          schema:
+            type: string
+      summary: run a job once immediately, does not affect the job schedule
+      tags:
+      - cron
   /api/v1/health/ping:
     post:
       consumes:

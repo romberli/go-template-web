@@ -10,11 +10,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pingcap/errors"
-	"github.com/romberli/go-template-web/pkg/message"
-	"github.com/romberli/go-template-web/pkg/resp"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/romberli/go-template-web/pkg/message"
+	"github.com/romberli/go-template-web/pkg/resp"
 )
 
 const (

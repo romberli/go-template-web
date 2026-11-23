@@ -6,7 +6,7 @@
 # default: None
 config: go_template_web.yaml
 
-# description: specify whether das runs as daemon mode, if true, das will run as a daemon process.
+# description: specify whether go-template-web runs as daemon mode, if true, it will run as a daemon process.
 # command-line-argument: --daemon
 # type: bool
 # default: false
@@ -20,7 +20,7 @@ log:
   # command-line-argument: --log-file
   # type: string
   # default: log/run.log
-  file: log/run.log
+  fileName: log/run.log
   # description: log level
   # command-line-argument: --log-level
   # type: string
@@ -69,8 +69,8 @@ server:
   # description: specify the server listening address, format: host:port
   # command-line-argument: --server-addr
   # type: string
-  # default: 0.0.0.0:6090
-  addr: "0.0.0.0:6090"
+  # default: 0.0.0.0:80
+  addr: "0.0.0.0:80"
   # description: pid file path, if it's specified as relative path,
   # then directory of binary file will be the base directory of log file,
   # it is recommended to specify absolute path.
@@ -82,14 +82,14 @@ server:
   # command-line-argument: --server-read-timeout
   # unit: second
   # type: int
-  # available: 0 - 60
+  # available: 0 - 3600
   # default: 5
   readTimeout: 5
   # description: specify the write timeout of http resp, 0 means no timeout
   # command-line-argument: --server-write-timeout
   # unit: second
   # type: int
-  # available: 0 - 60
+  # available: 1 - 3600
   # default: 10
   writeTimeout: 10
   # description: pprof configuration
@@ -118,3 +118,128 @@ server:
     # available: [200, 500]
     # default: 500
     httpErrorCode: 500
+
+# db configuration
+db:
+  # mysql configuration
+  mysql:
+    # description: database address, format: host:port
+    # command-line-argument: --db-mysql-addr
+    # type: string
+    # default: 127.0.0.1:3306
+    addr: "127.0.0.1:3306"
+    # description: database name
+    # command-line-argument: --db-mysql-name
+    # type: string
+    # default: go_template_web
+    name: go_template_web
+    # description: database username
+    # command-line-argument: --db-mysql-user
+    # type: string
+    # default: root
+    user: root
+    # description: database password, note that the password should be encrypted by the sm gtw key.
+    # command-line-argument: --db-mysql-pass
+    # type: string
+    # default: ""
+    pass: ""
+  # redis configuration
+  redis:
+    # description: redis addresses, format: host:port,host:port, if empty, redis will be disabled
+    # command-line-argument: --db-redis-addrs
+    # type: list
+    # default: ""
+    addrs: ""
+    # description: redis user, if ACL is enabled
+    # command-line-argument: --db-redis-user
+    # type: string
+    # default: default
+    user: default
+    # description: redis password, note that the password should be encrypted by the sm gtw key.
+    # command-line-argument: --db-redis-pass
+    # type: string
+    # default: ""
+    pass: ""
+  # connection pool configuration, shared by mysql and redis
+  pool:
+    # description: specify the max connections of the pool
+    # command-line-argument: --db-pool-max-connections
+    # type: int
+    # available: 1 - max int
+    # default: 20
+    maxConnections: 20
+    # description: specify the initial connections of the pool
+    # command-line-argument: --db-pool-init-connections
+    # type: int
+    # available: 1 - max int
+    # default: 5
+    initConnections: 5
+    # description: specify the max idle connections of the pool
+    # command-line-argument: --db-pool-max-idle-connections
+    # type: int
+    # available: 1 - max int
+    # default: 10
+    maxIdleConnections: 10
+    # description: specify the max idle time of the pool connections
+    # command-line-argument: --db-pool-max-idle-time
+    # unit: second
+    # type: int
+    # available: 1 - max int
+    # default: 1800
+    maxIdleTime: 1800
+    # description: specify the max wait time when getting a connection from the pool, -1 means no limit
+    # command-line-argument: --db-pool-max-wait-time
+    # unit: second
+    # type: int
+    # available: -1 - max int
+    # default: 1
+    maxWaitTime: 1
+    # description: specify the max retry count when executing sql, -1 means no retry
+    # command-line-argument: --db-pool-max-retry-count
+    # type: int
+    # available: -1 - max int
+    # default: -1
+    maxRetryCount: -1
+    # description: specify the keep alive interval of the pool connections
+    # command-line-argument: --db-pool-keep-alive-interval
+    # unit: second
+    # type: int
+    # available: 1 - max int
+    # default: 300
+    keepAliveInterval: 300
+
+# auth configuration
+auth:
+  # description: specify if enable the request signature authentication,
+  # if true, every api request except health check endpoints (/api/v1/health/*)
+  # must carry valid X-Client-Id and X-Sign headers, see the signature algorithm in docs.
+  # note that db.mysql and db.redis are required when enabled,
+  # client secrets are stored in t_sys_secret_info and the nonce store lives in redis.
+  # type: bool
+  # default: false
+  enabled: false
+  # description: specify the allowed clock skew between client timestamp and server time,
+  # requests with timestamp outside the window will be rejected.
+  # unit: second
+  # type: int
+  # available: 1 - 3600
+  # default: 300
+  timestampWindow: 300
+  # description: specify the ttl of the cached client secrets in redis,
+  # the ttl is refreshed on every cache hit,
+  # a cron job registered in newJobByName may reload secrets from t_sys_secret_info periodically.
+  # command-line-argument: --auth-secret-ttl
+  # unit: second
+  # type: int
+  # available: 1 - 86400
+  # default: 600
+  secretTTL: 600
+
+# sm configuration
+sm:
+  # description: the sm2 private key hex string used to encrypt and decrypt passwords,
+  # passwords in db.mysql.pass and db.redis.pass must be encrypted by this key.
+  # command-line-argument: --sm-gtw-key
+  # type: string
+  # default: C0B4C03A2CC83DE33427A4B9504E60B52F31746FA641D89AF2B4A96A53B64446
+  gtwKey: C0B4C03A2CC83DE33427A4B9504E60B52F31746FA641D89AF2B4A96A53B64446

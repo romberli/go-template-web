@@ -2,6 +2,7 @@ package health
 
 import (
 	"github.com/gin-gonic/gin"
+
 	msghealth "github.com/romberli/go-template-web/pkg/message/health"
 	"github.com/romberli/go-template-web/pkg/resp"
 )

@@ -1,16 +1,17 @@
 package router
 
 import (
-	"github.com/romberli/go-template-web/api/v1/health"
 	"net/http"
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/pingcap/errors"
-	"github.com/romberli/go-template-web/config"
 	"github.com/romberli/log"
 	"github.com/spf13/viper"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/romberli/go-template-web/api/v1/health"
+	"github.com/romberli/go-template-web/config"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -67,7 +68,11 @@ func (gr *GinRouter) Register() {
 	gr.Swagger()
 	gr.Engine.GET(defaultStatusURL, health.Status)
 
+	// health check endpoints are exempt from authentication
+	RegisterHealth(gr.Engine.Group(defaultBaseURL))
+
 	apiV1 := gr.Engine.Group(defaultBaseURL)
+	apiV1.Use(Auth())
 	RegisterAll(apiV1)
 }
 
@@ -84,6 +89,7 @@ func (gr *GinRouter) Swagger() {
 }
 
 func RegisterAll(group *gin.RouterGroup) {
-	// health
-	RegisterHealth(group)
+	// register non-health api groups here, they are protected by Auth()
+	// cron
+	RegisterCron(group)
 }

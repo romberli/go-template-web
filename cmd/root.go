@@ -23,6 +23,7 @@ import (
 
 	"github.com/pingcap/errors"
 	"github.com/romberli/go-util/constant"
+	"github.com/romberli/go-util/middleware/mysql"
 	"github.com/romberli/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -59,13 +60,34 @@ var (
 	serverRouterAlternativeBasePath string
 	serverRouterAlternativeBodyPath string
 	serverRouterHTTPErrorCode       int
+	// db
+	dbMySQLAddr              string
+	dbMySQLName              string
+	dbMySQLUser              string
+	dbMySQLPass              string
+	dbRedisAddrs             string
+	dbRedisUser              string
+	dbRedisPass              string
+	dbPoolMaxConnections     int
+	dbPoolInitConnections    int
+	dbPoolMaxIdleConnections int
+	dbPoolMaxIdleTime        int
+	dbPoolMaxWaitTime        int
+	dbPoolMaxRetryCount      int
+	dbPoolKeepAliveInterval  int
+	// auth
+	authEnabledStr      string
+	authTimestampWindow int
+	authSecretTTL       int
+	// sm
+	smGTWKey string
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go-template-web",
-	Short: "go-template-web",
-	Long:  `go-template-web is a template of golang web server`,
+	Short: "gtw",
+	Long:  `go-template-web is a web project template`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// if no subcommand is set, it will print help information.
 		if len(args) == constant.ZeroInt {
@@ -90,10 +112,16 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	err := rootCmd.Execute()
+	if err != nil {
 		fmt.Println(fmt.Sprintf(constant.LogWithStackString, errors.Trace(err)))
 		os.Exit(constant.DefaultAbnormalExitCode)
 	}
+}
+
+// RootCmd returns the root command
+func RootCmd() *cobra.Command {
+	return rootCmd
 }
 
 func init() {
@@ -124,6 +152,27 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&serverPProfEnabledStr, "server-pprof-enabled", constant.DefaultRandomString, fmt.Sprintf("specify if enable the pprof(default: %s)", constant.FalseString))
 	rootCmd.PersistentFlags().StringVar(&serverRouterAlternativeBasePath, "server-router-alternative-base-path", constant.DefaultRandomString, fmt.Sprintf("specify the alternative base path(default: %s)", config.DefaultServerRouterAlternativeBasePath))
 	rootCmd.PersistentFlags().StringVar(&serverRouterAlternativeBodyPath, "server-router-alternative-body-path", constant.DefaultRandomString, fmt.Sprintf("specify the alternative body path of the json body of the http request(default: %s)", config.DefaultServerRouterAlternativeBodyPath))
+	// db
+	rootCmd.PersistentFlags().StringVar(&dbMySQLAddr, "db-mysql-addr", constant.DefaultRandomString, fmt.Sprintf("specify the mysql address(format: host:port)(default: %s)", constant.DefaultMySQLAddr))
+	rootCmd.PersistentFlags().StringVar(&dbMySQLName, "db-mysql-name", constant.DefaultRandomString, fmt.Sprintf("specify the mysql database name(default: %s)", config.DefaultDBMySQLName))
+	rootCmd.PersistentFlags().StringVar(&dbMySQLUser, "db-mysql-user", constant.DefaultRandomString, fmt.Sprintf("specify the mysql user name(default: %s)", config.DefaultDBMySQLUser))
+	rootCmd.PersistentFlags().StringVar(&dbMySQLPass, "db-mysql-pass", constant.DefaultRandomString, "specify the mysql user password, encrypted by the sm gtw key")
+	rootCmd.PersistentFlags().StringVar(&dbRedisAddrs, "db-redis-addrs", constant.DefaultRandomString, fmt.Sprintf("specify the redis addresses(format: host:port,host:port)(default: %s)", constant.DefaultRedisAddr))
+	rootCmd.PersistentFlags().StringVar(&dbRedisUser, "db-redis-user", constant.DefaultRandomString, fmt.Sprintf("specify the redis user name(default: %s)", config.DefaultDBRedisUser))
+	rootCmd.PersistentFlags().StringVar(&dbRedisPass, "db-redis-pass", constant.DefaultRandomString, "specify the redis user password, encrypted by the sm gtw key")
+	rootCmd.PersistentFlags().IntVar(&dbPoolMaxConnections, "db-pool-max-connections", constant.DefaultRandomInt, fmt.Sprintf("specify the max connections of the database pool(default: %d)", mysql.DefaultMaxConnections))
+	rootCmd.PersistentFlags().IntVar(&dbPoolInitConnections, "db-pool-init-connections", constant.DefaultRandomInt, fmt.Sprintf("specify the initial connections of the database pool(default: %d)", mysql.DefaultInitConnections))
+	rootCmd.PersistentFlags().IntVar(&dbPoolMaxIdleConnections, "db-pool-max-idle-connections", constant.DefaultRandomInt, fmt.Sprintf("specify the max idle connections of the database pool(default: %d)", mysql.DefaultMaxIdleConnections))
+	rootCmd.PersistentFlags().IntVar(&dbPoolMaxIdleTime, "db-pool-max-idle-time", constant.DefaultRandomInt, fmt.Sprintf("specify the max idle time in seconds of the database pool(default: %d)", mysql.DefaultMaxIdleTime))
+	rootCmd.PersistentFlags().IntVar(&dbPoolMaxWaitTime, "db-pool-max-wait-time", constant.DefaultRandomInt, fmt.Sprintf("specify the max wait time in seconds of the database pool(default: %d)", mysql.DefaultMaxWaitTime))
+	rootCmd.PersistentFlags().IntVar(&dbPoolMaxRetryCount, "db-pool-max-retry-count", constant.DefaultRandomInt, fmt.Sprintf("specify the max retry count of the database pool(default: %d)", mysql.DefaultMaxRetryCount))
+	rootCmd.PersistentFlags().IntVar(&dbPoolKeepAliveInterval, "db-pool-keep-alive-interval", constant.DefaultRandomInt, fmt.Sprintf("specify the keep alive interval in seconds of the database pool(default: %d)", mysql.DefaultKeepAliveInterval))
+	// auth
+	rootCmd.PersistentFlags().StringVar(&authEnabledStr, "auth-enabled", constant.DefaultRandomString, fmt.Sprintf("specify if enable the request signature authentication(default: %s)", constant.FalseString))
+	rootCmd.PersistentFlags().IntVar(&authTimestampWindow, "auth-timestamp-window", constant.DefaultRandomInt, fmt.Sprintf("specify the allowed clock skew in seconds of the request timestamp(default: %d)", config.DefaultAuthTimestampWindow))
+	rootCmd.PersistentFlags().IntVar(&authSecretTTL, "auth-secret-ttl", constant.DefaultRandomInt, fmt.Sprintf("specify the ttl in seconds of the cached client secrets(default: %d)", config.DefaultAuthSecretTTL))
+	// sm
+	rootCmd.PersistentFlags().StringVar(&smGTWKey, "sm-gtw-key", constant.DefaultRandomString, "specify the sm2 private key hex string used to encrypt and decrypt passwords")
 	rootCmd.PersistentFlags().IntVar(&serverRouterHTTPErrorCode, "server-router-http-error-code", constant.DefaultRandomInt, fmt.Sprintf("specify the http return code when the server encountered an error(default: %d)", config.DefaultServerRouterHTTPErrorCode))
 
 	// Cobra also supports local flags, which will only run
@@ -153,6 +202,18 @@ func initConfig() error {
 		return message.NewMessage(message.ErrOverrideCommandLineArgs, err)
 	}
 
+	// override config with ENV variables
+	err = OverrideConfigByEnv()
+	if err != nil {
+		return message.NewMessage(message.ErrOverrideCommandLineArgs, err)
+	}
+
+	// decrypt passwords stored in the configuration
+	err = DecryptPass()
+	if err != nil {
+		return message.NewMessage(message.ErrDecryptPass, err)
+	}
+
 	// init log
 	fileName := viper.GetString(config.LogFileNameKey)
 	level := viper.GetString(config.LogLevelKey)
@@ -174,6 +235,8 @@ func initConfig() error {
 		return message.NewMessage(message.ErrInitLogger, err)
 	}
 
+	log.SetTimeFormat(log.TimeFormatMilliSecond)
+	log.SetSeperator(log.DefaultLogSeparator)
 	log.SetDisableDoubleQuotes(true)
 	log.SetDisableEscape(true)
 	if viper.GetBool(config.LogStdoutKey) {

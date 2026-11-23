@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/romberli/go-util/constant"
+	"github.com/romberli/go-util/middleware/mysql"
 	"github.com/romberli/log"
 	"github.com/spf13/viper"
 )
@@ -34,6 +35,12 @@ func SetDefaultConfig(baseDir string) {
 	SetDefaultLog(baseDir)
 	// server
 	SetDefaultServer(baseDir)
+	// db
+	SetDefaultDB()
+	// auth
+	SetDefaultAuth()
+	// sm
+	SetDefaultSM()
 }
 
 // SetDefaultDaemon sets the default value of daemon
@@ -65,6 +72,36 @@ func SetDefaultServer(baseDir string) {
 	viper.SetDefault(ServerRouterAlternativeBasePathKey, DefaultServerRouterAlternativeBasePath)
 	viper.SetDefault(ServerRouterAlternativeBodyPathKey, DefaultServerRouterAlternativeBodyPath)
 	viper.SetDefault(ServerRouterHTTPErrorCodeKey, DefaultServerRouterHTTPErrorCode)
+}
+
+// SetDefaultAuth sets the default value of auth
+func SetDefaultAuth() {
+	viper.SetDefault(AuthEnabledKey, DefaultAuthEnabled)
+	viper.SetDefault(AuthTimestampWindowKey, DefaultAuthTimestampWindow)
+	viper.SetDefault(AuthSecretTTLKey, DefaultAuthSecretTTL)
+}
+
+// SetDefaultDB sets the default value of db
+func SetDefaultDB() {
+	viper.SetDefault(DBMySQLAddrKey, constant.DefaultMySQLAddr)
+	viper.SetDefault(DBMySQLNameKey, DefaultDBMySQLName)
+	viper.SetDefault(DBMySQLUserKey, DefaultDBMySQLUser)
+	viper.SetDefault(DBMySQLPassKey, DefaultDBMySQLPass)
+	viper.SetDefault(DBRedisAddrsKey, constant.EmptyString)
+	viper.SetDefault(DBRedisUserKey, DefaultDBRedisUser)
+	viper.SetDefault(DBRedisPassKey, DefaultDBRedisPass)
+	viper.SetDefault(DBPoolMaxConnectionsKey, mysql.DefaultMaxConnections)
+	viper.SetDefault(DBPoolInitConnectionsKey, mysql.DefaultInitConnections)
+	viper.SetDefault(DBPoolMaxIdleConnectionsKey, mysql.DefaultMaxIdleConnections)
+	viper.SetDefault(DBPoolMaxIdleTimeKey, mysql.DefaultMaxIdleTime)
+	viper.SetDefault(DBPoolMaxWaitTimeKey, mysql.DefaultMaxWaitTime)
+	viper.SetDefault(DBPoolMaxRetryCountKey, mysql.DefaultMaxRetryCount)
+	viper.SetDefault(DBPoolKeepAliveIntervalKey, mysql.DefaultKeepAliveInterval)
+}
+
+// SetDefaultSM sets the default value of sm
+func SetDefaultSM() {
+	viper.SetDefault(SMGTWKeyKey, DefaultSMGTWKey)
 }
 
 // TrimSpaceOfArg trims spaces of given argument

@@ -61,6 +61,25 @@ const (
 	ErrGetResponseCode                         = 400054
 	ErrSetResponseCode                         = 400055
 	ErrGinRecovery                             = 400056
+	ErrAuthMissingHeader                       = 400060
+	ErrAuthInvalidTimestamp                    = 400061
+	ErrAuthTimestampExpired                    = 400062
+	ErrAuthReplayedNonce                       = 400063
+	ErrAuthInvalidSign                         = 400064
+	ErrAuthReadBody                            = 400065
+	ErrNotValidSMGTWKey                        = 400066
+	ErrDecryptPass                             = 400067
+	ErrInitGlobal                              = 400068
+	ErrNotValidDBPoolMaxWaitTime               = 400069
+	ErrNotValidDBPoolMaxRetryCount             = 400070
+	ErrAuthNonceStore                          = 400071
+	ErrAuthInvalidClientID                     = 400072
+	ErrAuthUnknownClient                       = 400073
+	ErrAuthSecretStore                         = 400074
+	ErrInitAuth                                = 400075
+	ErrNotValidAuthTimestampWindow             = 400076
+	ErrNotValidAuthSecretTTL                   = 400077
+	ErrAuthRedisRequired                       = 400078
 )
 
 func initErrorMessage() {
@@ -116,4 +135,23 @@ func initErrorMessage() {
 	Messages[ErrNotValidTimeLayout] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidTimeLayout, "time layout must be formatted as yyyy-MM-dd HH:mm:ss, %s is not valid")
 	Messages[ErrNotValidTimeDuration] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidTimeDuration, "time duration must be formatted, e.g. such as 300ms, -1.5h or 2h45m, %s is not valid")
 	Messages[ErrGinRecovery] = config.NewErrMessage(DefaultMessageHeader, ErrGinRecovery, "gin Recovery: panic recovered")
+	Messages[ErrAuthMissingHeader] = config.NewErrMessage(DefaultMessageHeader, ErrAuthMissingHeader, "auth failed: required header is missing. header: %s")
+	Messages[ErrAuthInvalidTimestamp] = config.NewErrMessage(DefaultMessageHeader, ErrAuthInvalidTimestamp, "auth failed: timestamp must be unix seconds, %s is not valid")
+	Messages[ErrAuthTimestampExpired] = config.NewErrMessage(DefaultMessageHeader, ErrAuthTimestampExpired, "auth failed: timestamp is outside the allowed window. timestamp: %s, window: %d seconds")
+	Messages[ErrAuthReplayedNonce] = config.NewErrMessage(DefaultMessageHeader, ErrAuthReplayedNonce, "auth failed: nonce has been used, request is rejected as replay")
+	Messages[ErrAuthInvalidSign] = config.NewErrMessage(DefaultMessageHeader, ErrAuthInvalidSign, "auth failed: signature verification failed")
+	Messages[ErrAuthReadBody] = config.NewErrMessage(DefaultMessageHeader, ErrAuthReadBody, "auth failed: read request body failed")
+	Messages[ErrNotValidSMGTWKey] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidSMGTWKey, "sm gtw key must be a valid sm2 private key hex string, %s is not valid")
+	Messages[ErrDecryptPass] = config.NewErrMessage(DefaultMessageHeader, ErrDecryptPass, "decrypt password failed")
+	Messages[ErrInitGlobal] = config.NewErrMessage(DefaultMessageHeader, ErrInitGlobal, "init global resources failed")
+	Messages[ErrNotValidDBPoolMaxWaitTime] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidDBPoolMaxWaitTime, "database max wait time must be between %d and %d, %d is not valid")
+	Messages[ErrNotValidDBPoolMaxRetryCount] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidDBPoolMaxRetryCount, "database max retry count must be between %d and %d, %d is not valid")
+	Messages[ErrAuthNonceStore] = config.NewErrMessage(DefaultMessageHeader, ErrAuthNonceStore, "auth failed: nonce store is unavailable")
+	Messages[ErrAuthInvalidClientID] = config.NewErrMessage(DefaultMessageHeader, ErrAuthInvalidClientID, "auth failed: client id is too long, max length is 100, %s is not valid")
+	Messages[ErrAuthUnknownClient] = config.NewErrMessage(DefaultMessageHeader, ErrAuthUnknownClient, "auth failed: client does not exist or is deleted. client_id: %s")
+	Messages[ErrAuthSecretStore] = config.NewErrMessage(DefaultMessageHeader, ErrAuthSecretStore, "auth failed: secret store is unavailable")
+	Messages[ErrInitAuth] = config.NewErrMessage(DefaultMessageHeader, ErrInitAuth, "init auth controller failed")
+	Messages[ErrNotValidAuthTimestampWindow] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidAuthTimestampWindow, "auth timestamp window must be between %d and %d, %d is not valid")
+	Messages[ErrNotValidAuthSecretTTL] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidAuthSecretTTL, "auth secret ttl must be between %d and %d, %d is not valid")
+	Messages[ErrAuthRedisRequired] = config.NewErrMessage(DefaultMessageHeader, ErrAuthRedisRequired, "auth requires redis, db.redis.addrs could not be empty when auth.enabled is true")
 }

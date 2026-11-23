@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -30,7 +31,11 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/romberli/go-template-web/config"
+	"github.com/romberli/go-template-web/global"
+	"github.com/romberli/go-template-web/module/auth"
+	"github.com/romberli/go-template-web/module/cron"
 	"github.com/romberli/go-template-web/pkg/message"
+	"github.com/romberli/go-template-web/pkg/util"
 	"github.com/romberli/go-template-web/router"
 	"github.com/romberli/go-template-web/server"
 )
@@ -116,6 +121,32 @@ var startCmd = &cobra.Command{
 				os.Exit(constant.DefaultAbnormalExitCode)
 			}
 
+			// init global resources
+			err = global.Init()
+			if err != nil {
+				log.Errorf(constant.LogWithStackString, message.NewMessage(message.ErrInitGlobal, err))
+				os.Exit(constant.DefaultAbnormalExitCode)
+			}
+			defer global.Close()
+
+			// init server id
+			viper.Set(config.ServerIDKey, util.GenerateServerID())
+			log.Infof("init server id successfully. serverID: %s", viper.GetString(config.ServerIDKey))
+
+			// load client secrets into the redis cache when auth is enabled
+			if viper.GetBool(config.AuthEnabledKey) {
+				secretController := auth.NewSecretController()
+				err = secretController.Init(context.Background())
+				if err != nil {
+					log.Errorf(constant.LogWithStackString, message.NewMessage(message.ErrInitAuth, err))
+					os.Exit(constant.DefaultAbnormalExitCode)
+				}
+			}
+
+			// start cron jobs
+			jobController := cron.NewJobController()
+			jobController.Start()
+
 			// init router
 			r := router.NewGinRouter()
 			r.Register()
@@ -133,7 +164,10 @@ var startCmd = &cobra.Command{
 			log.Info(message.NewMessage(message.InfoServerStart, s.Addr(), serverPid, serverPidFile).Error())
 
 			// handle signal
-			linux.HandleSignals(serverPidFile, s.Stop)
+			linux.HandleSignals(serverPidFile, s.Stop, func() error {
+				jobController.Stop()
+				return nil
+			})
 		}
 	},
 }
